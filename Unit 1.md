@@ -108,7 +108,7 @@
     * `(x<=y) and not (y>z)`
 * for loops
 
-```
+```cpp
 for (int i = 0; i < 10; i = i + 1){ 
     ...
 }
@@ -116,7 +116,7 @@ for (int i = 0; i < 10; i = i + 1){
 
 * While loops
 
-```
+```cpp
 while (x>5){ 
     ...
 } 
@@ -124,7 +124,7 @@ while (x>5){
 
 * If statements
   
-```
+```cpp
 if (true){ 
     ...
 }
@@ -146,7 +146,7 @@ elseif (false){
 * Functions
   * they have a return type
 
-```
+```cpp
 int f(int x, int y){
     return x + y
 }
@@ -164,15 +164,12 @@ int f(int x, int y){
   * `struct` (see example)
   * `print(...)` (see example)
 
-```
+```cpp
 struct Node{
     int val,
     Node next
 }
-```
 
-
-```
 void println(int x){
     print(x)
     print('\n')

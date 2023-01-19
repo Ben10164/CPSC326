@@ -71,7 +71,7 @@
 
 #### Notes
 
-* Strongly types
+* Strongly typed
   * this means that all type errors are detected before rune-time
 * Comments
   * \# and only single line
@@ -98,14 +98,18 @@
         * null can be used for `== !=` and initializations, but nothing else
           * 5 + null is an error
           * 5 <= null is an error
-* Assignment stunts
-  * `x = 5`
-  * `a = 22
 * Comparators
   * `==, !=, <, <=, >, >=`
   * `or and not`
   * all expressions can be parenthesizes
     * `(x<=y) and not (y>z)`
+* Assignment stunts
+
+```cpp
+x = 5
+a = 22
+```
+
 * for loops
 
 ```cpp
@@ -128,7 +132,7 @@ while (x>5){
 if (true){ 
     ...
 }
-elseif (false){
+else if (false){ (may have been elseif with no space) 
     ...
 }
 ```

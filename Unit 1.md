@@ -1,5 +1,19 @@
 # Notes for Unit 1 (or whenever I think we change topics)
 
+## Table of Contents <!-- omit in toc -->
+
+* [Notes for Unit 1 (or whenever I think we change topics)](#notes-for-unit-1-or-whenever-i-think-we-change-topics)
+  * [Lecture 1](#lecture-1)
+    * [Course Overview](#course-overview)
+    * [Goals](#goals)
+    * [Some logistics](#some-logistics)
+    * [Grading](#grading)
+    * [What we are using](#what-we-are-using)
+    * [Expectations](#expectations)
+    * [MyPL](#mypl)
+      * [Info help with hw-1](#info-help-with-hw-1)
+      * [Notes](#notes)
+
 ## Lecture 1
 
 ### Course Overview

@@ -179,3 +179,8 @@ void println(int x){
     print('\n')
 }
 ```
+
+
+
+ASK ABOUT THE MYPL STUFF
+LIKE HOW THE CIN STUFF STOPS AFTER THE AMOUNT IT NEEDS

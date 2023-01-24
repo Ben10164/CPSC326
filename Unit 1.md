@@ -23,7 +23,7 @@
     * [MyPL Implementation](#mypl-implementation)
     * [Paragraph Example](#paragraph-example)
     * [Types of Interpreters](#types-of-interpreters)
-    * ["Transpiler"](#transpiler)
+      * ["Transpiler"](#transpiler)
     * [Lexical Analysis (Lexer)](#lexical-analysis-lexer)
 
 ## Lecture 1
@@ -378,7 +378,7 @@ Semantic Analysis
       * As the JVM is running (Program is running), it is analyzing the byte code and the patterns being called
       * Figures out on the fly which portions of the ByteCode should be converted to machine code
 
-### "Transpiler"
+#### "Transpiler"
 
 Converts from one language into another language
 

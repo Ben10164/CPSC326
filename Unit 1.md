@@ -269,32 +269,35 @@ void print_leaves(const Node* root){
 
 ### Compilation
 
-* Compilation:
-  * Uses the design principle: Seperation of Concerns
-  * Typical assembly line, parts come in and people have specific jobs
-    * each box/step has a specific thing that it does
+* Uses the design principle: Seperation of Concerns
+* Typical assembly line, parts come in and people have specific jobs
+  * each box/step has a specific thing that it does
 
 #### Front End Compilation
 
-* Source Program
-  * Source Program feeds into the Lexical Analyzer (Lexer)
-* Lexer
-  * Lexer takes the source input, does some processing, and identifies "Tokens"
-    * basic part of the programming language (keyword, or program symbol)
-  * Reads until a token, then sends it out!
-    * If there is an error, the lexer can abort
-      * instead of reading everything and then checking for tokens, lexer does it token at a time in case there is an error
-      * Designed to be efficient
-    * Why do we care about compilers to be fast?
-      * You can't develop as fast if it takes a long time to compile the code
-  * Lexer outputs a token "stream"
+Source Program
 
-* Parser
-  * Token stream goes to the Syntax Analysis (Parser)
-  * The parser doesn't have to worry about the source code itself, because it is only working with wellformed tokens.
-  * The parser figures out how the tokens go together
-    * if the tokens can't, that is a syntax error
-  * Parser Ouputs an "Abstract Syntax Tree" (AST)
+* Source Program feeds into the Lexical Analyzer (Lexer)
+
+Lexer
+
+* Lexer takes the source input, does some processing, and identifies "Tokens"
+  * basic part of the programming language (keyword, or program symbol)
+* Reads until a token, then sends it out!
+  * If there is an error, the lexer can abort
+    * instead of reading everything and then checking for tokens, lexer does it token at a time in case there is an error
+    * Designed to be efficient
+  * Why do we care about compilers to be fast?
+    * You can't develop as fast if it takes a long time to compile the code
+* Lexer outputs a token "stream"
+
+Parser
+
+* Token stream goes to the Syntax Analysis (Parser)
+* The parser doesn't have to worry about the source code itself, because it is only working with wellformed tokens.
+* The parser figures out how the tokens go together
+  * if the tokens can't, that is a syntax error
+* Parser Ouputs an "Abstract Syntax Tree" (AST)
 
   ```c
   3 + x * 5 will be seen as 
@@ -305,13 +308,15 @@ void print_leaves(const Node* root){
                                    x   5
   ```
 
+Semantic Analysis
+
 * AST goes to the Semantic Analysis (Static analyzer, type checker)
-  * are you using variables you declared
-  * do the types match
-  * function/var not defined
-  * `type error` or `use before def error`
-  * Outputs the AST and sometimes type info (type annotations)
-    * Type info could be annotating the `x` in the AST as an `int`
+* are you using variables you declared
+* do the types match
+* function/var not defined
+* `type error` or `use before def error`
+* Outputs the AST and sometimes type info (type annotations)
+  * Type info could be annotating the `x` in the AST as an `int`
 
 #### PL Backend Steps
 

@@ -13,6 +13,8 @@
     * [MyPL](#mypl)
       * [Info help with hw-1](#info-help-with-hw-1)
       * [Notes](#notes)
+  * [Monday 1](#monday-1)
+  * [Exercises](#exercises)
 
 ## Lecture 1
 
@@ -194,5 +196,60 @@ void println(int x){
 }
 ```
 
-**ASK ABOUT THE MYPL STUFF**  
-**LIKE HOW THE CIN STUFF STOPS AFTER THE AMOUNT IT NEEDS**
+## Monday 1
+
+```cpp
+void print_leaves(const Node* root){
+    if(root == nullptr)
+        return; // probably wont happen
+    if(root->left)
+        print_leaves(root->left)
+    if(root->right)
+        print)leaves(root->right)
+    if(!root->left && !root->right)
+        cout << root->val << endl;
+}
+```
+
+## Exercises
+
+1. Write a MyPL function that computes the sum of a given array of integer values
+
+    ```c
+    int sum(array int xs){
+        int sum = 0
+        for(int i = 0; i < length(xs); i = i + 1){
+            sum = sum + xs[i]
+        }
+        return sum
+    }
+    ```
+
+1. Write a MyPL program that repeatedly prompts a user for a number until thy enter "-1", and then prints out the sum of the numbers they entered (excluding -1)
+
+    ```c
+    void main(){
+        int NEG.ONE = 0 - 1
+        int sum = 0
+        int val = 0
+        while(val != NEG.ONE){
+            print("Please enter an int (-1 to quit): ")
+            val = to_int(input())
+            if(val != NEG.ONE){
+                sum = sum + val
+            }
+        }
+        print("The sum is: ")
+        print(sum)
+    }
+    ```
+
+1. Implement Merge Sort in MyPL
+    ```c
+    void merge_sort(array int A, int start, int end){
+        if(start < end){
+            int mid = (start + end) / 2
+            merge_sort(A, start, mid)   # recursive step
+            merge_sort(A, mid + 1, end) # revursive step
+            merge(A, start, mid, end)   # merge sublists
+        }

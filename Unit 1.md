@@ -29,6 +29,10 @@
   * [Tokens](#tokens)
     * [Token STREAMs](#token-streams)
       * [Examples](#examples)
+    * [Syntax](#syntax)
+      * [Formal Grammars](#formal-grammars)
+      * [Grammar Rules](#grammar-rules)
+      * [Construct](#construct)
 
 ## Lecture 1
 
@@ -505,3 +509,47 @@ WHILE(while), LPAREN((), ID(x), LESS(<), INT_VAL(10),
 RPAREN()), LBRACE({), ID(x),ASSIGN(=), ID(x), PLUS(+), 
 INT_VAL(x),RBRACE(}), EOS()
 ```
+
+### Syntax
+
+#### Formal Grammars
+
+* A set of rules that specify a language (syntax)
+  * A "language" is a set of allowable strings
+* In PL implementation, grammars are used to specify:
+  * Tokens
+  * Syntax
+* Different "classes" of grammars (Expresivity)
+  * Regular Languages (regular expressions [REGEX]) 
+  * Context-free
+
+#### Grammar Rules
+
+* Grammar Rules define "productions" (aka "rewritings")
+* Example: `<S>->a`
+  * Here we say S "produces" a (or "yields" a)
+  * S is a _non-terminal_ (LHS of a rule)
+    * the only thing that can appear on the left hand side of a production rule
+    * non-terminals can be thought of as variables
+  * a is a _terminal_ (RHS of a rule)
+    * can only appear on the right hand side of a production rule
+    * terminals can be thought of as literals
+* Terminals and Non-Terminals have to be disjoint
+* Set of terminals is the "Alphabet" of a language.
+* Typically denote a start-symbol (non-terminal)
+  
+Derivation: Start with the start symbol, follow rules to see what can be produced
+* S => a
+* Because the only derivation this language can produce, this language is denoted as:
+  * `L={a}`
+
+#### Construct
+* Concatenation
+  * `<S>->ab` 
+    * S => ab, `L={ab}`
+  * `T->uv`, `u->a`, `v->b`
+    * t => uv => aV => ab, `L={ab}`
+* Alternation
+  * `S->a|b`, S can be replaced with an a or b
+    * `L={a,b}`
+  * `S->a`, `S->b` (same thing as `S->a|b`)

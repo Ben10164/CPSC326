@@ -25,6 +25,10 @@
     * [Types of Interpreters](#types-of-interpreters)
       * ["Transpiler"](#transpiler)
     * [Lexical Analysis (Lexer)](#lexical-analysis-lexer)
+  * [Lecture #3](#lecture-3)
+  * [Tokens](#tokens)
+    * [Token STREAMs](#token-streams)
+      * [Examples](#examples)
 
 ## Lecture 1
 
@@ -403,3 +407,101 @@ Converts from one language into another language
       * LPAREN, RPAREN, INT_TYPE, INT_VALUE, ID, etc.
     * "Lexemes": what it represents
       * "(", ")", "int", "42", "x"
+
+## Lecture #3
+
+## Tokens
+
+Token: The smallest meaningful unit of a programming language
+
+* Special Words" ("Reserved Words")
+  * `int`, `enum`, `if`, `for`, `while`, `true`, etc.
+* Opperators & Punctuations
+  * `!`, `==`, `%`, `;`, `+`, `(`, etc.
+* Literals (Constants)
+  * `42`, `3.14`, `"foo"`, etc
+* Names (Identifiers) [IDs]
+  * `int x;`
+    * `x` is the identifier
+* Tokens have `types` & "Lexemes"
+  * `types`: what are we representing
+    * LPAREN, RPAREN, INT_TYPE, INT_VALUE, ID, etc.
+  * "Lexemes": what it represents
+    * "(", ")", "int", "42", "x"
+
+'Token Objects': our lexer creates tokens, so these tokens are objects that have information in it. The info that the token has are:
+
+* Token type
+  * the type of the value
+  * `INT_TYPE`, `SEMICOLON`, `INT_VAL`, `ID`
+* Lexeme
+  * the actual value that it took on in the file
+  * `"int"`, `";"`, `"42"`
+* Line #
+* Column #
+
+Example of Token Stream from source code
+
+`Source Code:`
+
+```c
+int f()
+{
+    int x = 0
+    return x
+}
+```
+
+### Token STREAMs
+
+`Token_TYPE("Lexeme")`
+
+```c++
+INT_TYPE(int), ID(f), LPAREN((), RPAREN()),
+LBRACE({), INT_TYPE(int), ID(x), ASSIGN(=),
+INT_VAL(0), RETURN(return), ID(x), RBRACE(}),
+EOS()
+```
+
+EOS() is for End Of Stream because we cant reuse EOF, the Lexeme is blank
+
+All the types
+
+```c++
+ASSIGN, ID, INT_VAL, CBRACE, RBRACE, LPAREN,
+RPAREN, STRING_VAL, INT_TYPE, WHILE, LESS,
+PLUS,
+```
+
+#### Examples
+
+Snippet 1:
+
+```c
+print("Hello!")
+```
+
+sol
+
+```c++
+ID(print), LPAREN((), STRING_VAL("Hello!"), RPAREN()), 
+EOS()
+```
+
+Snippet 2:
+
+```c
+int x = 0
+while(x < 10){
+    x = x + 2
+}
+```
+
+sol
+
+```c++
+INT_TYPE(int), ID(x), ASSIGN(=), INT_VAL(0),
+WHILE(while), LPAREN((), ID(x), LESS(<), INT_VAL(10),
+RPAREN()), LBRACE({), ID(x),ASSIGN(=), ID(x), PLUS(+), 
+INT_VAL(x),RBRACE(}), EOS()
+```

@@ -33,6 +33,10 @@
       * [Formal Grammars](#formal-grammars)
       * [Grammar Rules](#grammar-rules)
       * [Construct](#construct)
+  * [Monday 2](#monday-2)
+    * [MyPL Quiz Notes](#mypl-quiz-notes)
+    * [GTest](#gtest)
+    * [Hints for HW2](#hints-for-hw2)
 
 ## Lecture 1
 
@@ -519,8 +523,8 @@ INT_VAL(x),RBRACE(}), EOS()
 * In PL implementation, grammars are used to specify:
   * Tokens
   * Syntax
-* Different "classes" of grammars (Expresivity)
-  * Regular Languages (regular expressions [REGEX]) 
+* Different "classes" of grammars (Expressivity)
+  * Regular Languages (regular expressions [REGEX])
   * Context-free
 
 #### Grammar Rules
@@ -528,10 +532,10 @@ INT_VAL(x),RBRACE(}), EOS()
 * Grammar Rules define "productions" (aka "rewritings")
 * Example: `<S>->a`
   * Here we say S "produces" a (or "yields" a)
-  * S is a _non-terminal_ (LHS of a rule)
+  * S is a *non-terminal* (LHS of a rule)
     * the only thing that can appear on the left hand side of a production rule
     * non-terminals can be thought of as variables
-  * a is a _terminal_ (RHS of a rule)
+  * a is a *terminal* (RHS of a rule)
     * can only appear on the right hand side of a production rule
     * terminals can be thought of as literals
 * Terminals and Non-Terminals have to be disjoint
@@ -539,13 +543,15 @@ INT_VAL(x),RBRACE(}), EOS()
 * Typically denote a start-symbol (non-terminal)
   
 Derivation: Start with the start symbol, follow rules to see what can be produced
+
 * S => a
 * Because the only derivation this language can produce, this language is denoted as:
   * `L={a}`
 
 #### Construct
+
 * Concatenation
-  * `<S>->ab` 
+  * `<S>->ab`
     * S => ab, `L={ab}`
   * `T->uv`, `u->a`, `v->b`
     * t => uv => aV => ab, `L={ab}`
@@ -553,3 +559,106 @@ Derivation: Start with the start symbol, follow rules to see what can be produce
   * `S->a|b`, S can be replaced with an a or b
     * `L={a,b}`
   * `S->a`, `S->b` (same thing as `S->a|b`)
+
+## Monday 2
+
+### MyPL Quiz Notes
+
+Declare an int, string, and array of boolean (of size 3)
+
+```c
+int x1 = 42
+string x2 = ""
+array bool x3 = new bool[3]
+```
+
+Function that takes in an array and a min value, returns if the sum of the array > min value
+
+```c
+bool at_least (array int xs, int min){
+    int sum = 0
+    for(int i = 0; i < length(xs); i = i + 1){
+        sum = sum + xs[i[
+    }
+    return sum > min
+}
+```
+
+Program that prompts a user for their first & last name, and prints out msg
+
+```c
+void main(){
+    print("Enter your first name: ")
+    string first = input()
+    print("Enter your last name: ")
+    string last = input()
+    string msg = concat("Hello ", first)
+    msg = concat(msg, " ")
+    msg = concat(msg, last)
+    msg = concat(msg,  "!")
+    print(msg)
+}
+```
+
+### GTest
+
+```cpp
+TEST(BasicTokenTest, ColumnGivenIsReturned) {
+    // creating the object
+    Token token1(TokenType::BOOL_TYPE, "bool", 0, 10);
+    Token token2(TokenType::BOOL_TYPE, "bool", 0, 20);
+
+    // testing them (expected, actual)
+    ASSERT_EQ(10, token1.column());
+    ASSERT_EQ(20, token2.column());
+}
+```
+
+### Hints for HW2
+
+* Layout of his `next_token()`
+
+loop through the stream, adding to the lexeme until you don't see something
+
+1. Read over all whitespace & comments (check for EOF/EOS)
+2. Check EOF
+3. Check for single-character tokens (`+`, `-`, `*`, ...)
+4. Check for two character tokens (`<=`, `==`, ...)
+5. Check for character values (`'c'`, ...)
+6. Check for string values (`"..."`)
+7. ints & doubles
+8. Check if the lexeme at this point is a reserve word
+9. If its not, its an identifier
+
+```cpp
+// at this point it is a reserve word or identifier
+if(isalpha(ch)){
+    // build up lexeme (restof)
+    ...
+    // check against reserved words
+    ...
+    return ...
+}else{
+    // it is a bad character
+}
+```
+
+```cpp
+// checking if a ch is the start of a character
+if(ch == '\''){}
+
+if(ch == '\\'){} // then you need to read one more character.
+// and if there isn't another character, its an error
+
+// COLUMN NUMBER IS AT THE POSITION OF THE FIRST QUOTE
+
+isdigit(ch);
+
+if(ch == '\''){
+    ch = read();
+    if(ch == '\''){
+        // uh oh! there is an error!
+        error("msg", line, column);
+    }
+
+```

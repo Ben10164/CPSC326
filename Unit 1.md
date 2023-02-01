@@ -17,7 +17,7 @@
     * [Exercises](#exercises)
   * [Lecture 2](#lecture-2)
     * [Compilation](#compilation)
-      * [Front End Compilation](#front-end-compilation)
+      * [Front End Steps](#front-end-steps)
       * [PL Backend Steps](#pl-backend-steps)
     * [Interpretation](#interpretation)
     * [MyPL Implementation](#mypl-implementation)
@@ -37,6 +37,11 @@
     * [MyPL Quiz Notes](#mypl-quiz-notes)
     * [GTest](#gtest)
     * [Hints for HW2](#hints-for-hw2)
+  * [Lecture #4](#lecture-4)
+    * [Grammar Rules (Cont.)](#grammar-rules-cont)
+      * [Regular Rules](#regular-rules)
+      * [Contex Free Rules](#contex-free-rules)
+    * [BNF notation](#bnf-notation)
 
 ## Lecture 1
 
@@ -285,7 +290,7 @@ void print_leaves(const Node* root){
 * Typical assembly line, parts come in and people have specific jobs
   * each box/step has a specific thing that it does
 
-#### Front End Compilation
+#### Front End Steps
 
 Source Program
 
@@ -560,6 +565,8 @@ Derivation: Start with the start symbol, follow rules to see what can be produce
     * `L={a,b}`
   * `S->a`, `S->b` (same thing as `S->a|b`)
 
+[Grammar Rules (Cont)](#grammar-rules-cont)
+
 ## Monday 2
 
 ### MyPL Quiz Notes
@@ -661,4 +668,112 @@ if(ch == '\''){
         error("msg", line, column);
     }
 
+```
+
+## Lecture #4
+
+### Grammar Rules (Cont.)
+
+* Set of terminals = "alphabet"
+  * $\Sigma$
+* "Derivation" = Replace Non-terminals w/ RHS of rules until only terminals
+* A set of grammar rules defines a "language"
+  * L={a,b,c}
+* `S->ab`; `S->UV`; `U->a`; `V->b`
+  * Derivation:
+    * `S=>UV=>aV=>ab`
+  * $\Sigma =$ `{a,b}`
+  * `L={ab}`
+
+#### Regular Rules
+
+`Regular Languages`: Languages made using Simple, Concatenation, Alternation, Empty, and Kleene "star"'s
+
+`Regular Expressions`: Expressions made using Simple, Concatenation, Alternation, Empty, and Kleene "star"'s
+
+* Simple Rule: `S->a`
+* Concatenation:
+  * `S->ab`
+    * $\Sigma =$ `A={a,b}`
+    * `L={ab}`
+  * `S->abc`
+    * $\Sigma =$ {a,b,c}`
+    * `L={abc}`
+* Alternation
+  * `S->a`; `S->b`
+    * $\Sigma =$ `{a,b}
+    * `L={a,b}`
+  * `S->a|b`
+* Empty String
+  * $\epsilon$
+  * `S->a|empty` = `S->a|""` = $S->a|\epsilon$
+    * `L={empty, a}`
+    * `L={"",a}`
+* Kleene "star" (Closure)
+  * `S->a*`
+    * From s, you can produce 0 or more a's
+    * `L={empty,a,aa,aaa,...}`
+      * Can also be $a^{i}, i \gt = 0$
+  * `S->a*b*`
+    * `L={empty,ab,a,bb,abbb,...}`
+      * $a^ib^j;i,j>= 0$
+  * `S->a*|b*`
+    * `L={empty,a,b,aa,bb,aaa,bbb,...}`
+      * $a^i \cup b^i$
+  * `S->(a|b)*`
+    * `L={empty,a,aa,b,bb,ab,aab,baa,...}`
+
+#### Contex Free Rules
+
+* Recursion: Direct & Indirect
+  * Direct
+    * `S-> '{' '}' | '{' S '}'`
+      * $\Sigma =$`{'{','}'`
+        * `S->'{''}'`
+        * `S->'{'S'}'` : Direct (Visually Recursive)
+      * `L={ {}, {{}}, {{{}}}, ...} ("Balanced")
+        * $\{^i \space \space \}^i$
+      * `S=>{}`
+      * `S=>{S}=>{{}}`
+      * `S=>{S}=>{{S}}=>{{{}}}`
+  * Recursion vs kleene star
+    * Try it using `*`
+      * `S->{*}*`
+      * It is "bigger" because it allows "unbalanced"
+        * `{{}`
+      * There are things we cannot express with `*` that we **can** with recursion
+    * Recursion can be used to express everything kleene star can
+  * Indirect
+    * `S-> '{' '}' | '{' T '}'`; `T->S`
+      * same as the direct example
+    * Not visually recursive (S->S), but is recursive if you look a bit closer
+
+How can we represent `x` using recursion?
+
+* `S->aa*`
+  * `S->aS|a`
+  * **Note**: Sometimes people use $a^+$ to represent `aS|a`
+* `S->a*`
+  * `S->aS|empty`
+
+Define a grammar for strings $a^ib^i$ where i > 0 and i is odd:
+
+* `S->ab|aaSbb`
+  
+Define a grammar for strings $a^ib^jc^i$ where i > 0, j >=0, and i is even:
+
+* `S->aaTcc|aaScc`
+* `T=bT|empty`
+
+### BNF notation
+
+```c
+BOOL_VAL ::= true | false
+INT_VAL ::= <pdigit> <digit> * | 0
+DOUBLE_VAL ::= INT_VAL . <digit> <digit> *
+STRING_VAL ::= '"' <char> * '"'
+ID ::= <letter> ( <letter> | <digit> | '_' ) *
+<letter> ::= 'a' | ... | 'z' | 'A' | ... 'Z'
+<pdigit> ::= '1' | ... | '9' 
+<digit> ::= '0' | ... | <pdigit>
 ```

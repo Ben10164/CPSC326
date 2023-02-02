@@ -25,23 +25,28 @@
     * [Types of Interpreters](#types-of-interpreters)
       * ["Transpiler"](#transpiler)
     * [Lexical Analysis (Lexer)](#lexical-analysis-lexer)
-  * [Lecture #3](#lecture-3)
-  * [Tokens](#tokens)
-    * [Token STREAMs](#token-streams)
+  * [Lecture 3](#lecture-3)
+    * [Tokens](#tokens)
+    * [Token Streams](#token-streams)
       * [Examples](#examples)
     * [Syntax](#syntax)
-      * [Formal Grammars](#formal-grammars)
-      * [Grammar Rules](#grammar-rules)
+    * [Formal Grammars](#formal-grammars)
+    * [Grammar Rules](#grammar-rules)
       * [Construct](#construct)
   * [Monday 2](#monday-2)
     * [MyPL Quiz Notes](#mypl-quiz-notes)
     * [GTest](#gtest)
     * [Hints for HW2](#hints-for-hw2)
-  * [Lecture #4](#lecture-4)
+  * [Lecture 4](#lecture-4)
     * [Grammar Rules (Cont.)](#grammar-rules-cont)
       * [Regular Rules](#regular-rules)
       * [Contex Free Rules](#contex-free-rules)
     * [BNF notation](#bnf-notation)
+  * [Lecture 5](#lecture-5)
+    * [Statement list](#statement-list)
+    * [Derivation](#derivation)
+    * [Parse Tree](#parse-tree)
+    * [LL(k) Parser](#llk-parser)
 
 ## Lecture 1
 
@@ -421,9 +426,9 @@ Converts from one language into another language
     * "Lexemes": what it represents
       * "(", ")", "int", "42", "x"
 
-## Lecture #3
+## Lecture 3
 
-## Tokens
+### Tokens
 
 Token: The smallest meaningful unit of a programming language
 
@@ -465,7 +470,7 @@ int f()
 }
 ```
 
-### Token STREAMs
+### Token Streams
 
 `Token_TYPE("Lexeme")`
 
@@ -521,7 +526,7 @@ INT_VAL(x),RBRACE(}), EOS()
 
 ### Syntax
 
-#### Formal Grammars
+### Formal Grammars
 
 * A set of rules that specify a language (syntax)
   * A "language" is a set of allowable strings
@@ -532,7 +537,7 @@ INT_VAL(x),RBRACE(}), EOS()
   * Regular Languages (regular expressions [REGEX])
   * Context-free
 
-#### Grammar Rules
+### Grammar Rules
 
 * Grammar Rules define "productions" (aka "rewritings")
 * Example: `<S>->a`
@@ -670,7 +675,7 @@ if(ch == '\''){
 
 ```
 
-## Lecture #4
+## Lecture 4
 
 ### Grammar Rules (Cont.)
 
@@ -777,3 +782,135 @@ ID ::= <letter> ( <letter> | <digit> | '_' ) *
 <pdigit> ::= '1' | ... | '9' 
 <digit> ::= '0' | ... | <pdigit>
 ```
+
+## Lecture 5
+
+### Statement list
+
+a list of statements
+
+```c
+<stmt_list> ::= < <stmt> | <stmt>';'<stmt_list>
+<stmt> ::= <var> '=' <expr>
+<var> ::= 'A' | 'B' | 'C'
+<expr> ::= <var> | <var> '+' <var> | <var> '-' <var>
+```
+
+### Derivation
+
+```c
+Use the above grammar to derive:
+A = B + C; B = A
+
+"LEFT-MOST DERIVATION"
+
+<stmt_list> => <stmt> ';' <stmt_list>
+<stmt> ';' <stmt_list> => <var> '=' <expr> ';' <stmt_list>
+<var> '=' <expr> ';' <stmt_list> => 'A' '=' <expr> ';' <stmt_list>
+'A' '=' <expr> ';' <stmt_list> => 'A' '=' <var> '+' <var> ';' <stmt_list>
+'A' '=' <var> '+' <var> ';' <stmt_list> => 'A' '=' 'B' '+' <var> ';' <stmt_list>
+'A' '=' 'B' '+' <var> ';' <stmt_list> => 'A' '=' 'B' '+' 'c' ';' <stmt_list>
+'A' '=' 'B' '+' 'c' ';' <stmt_list> => 'A' '=' 'B' '+' 'c' ';' <stmt>
+'A' '=' 'B' '+' 'c' ';' <stmt> => 'A' '=' 'B' '+' 'c' ';' <var> '=' <expr>
+'A' '=' 'B' '+' 'c' ';' <var> '=' <expr> => 'A' '=' 'B' '+' 'c' ';' 'B' '=' <expr>
+'A' '=' 'B' '+' 'c' ';' 'B' '=' <expr> => 'A' '=' 'B' '+' 'c' ';' 'B' '=' <var>
+'A' '=' 'B' '+' 'c' ';' 'B' '=' <var> => 'A' '=' 'B' '+' 'c' ';' 'B' '=' 'A'
+```
+
+Left-most Derivations are most commonly used for parsing.  
+Although right-most is used in some parsers
+
+### Parse Tree
+
+* The root of the parse tree is a statement list
+
+```c
+                    (stmt_list)
+                   /    |       \
+            (stmt)      ;      (stmt_list)         
+            / |  \                  |
+        (var) = (expr)            (stmt)
+          |     / |  \          /   |   \
+          A  (var) + (var)   (var)  =  (expr)
+               |      |        |        |
+               B      C        B        A
+
+          A   =B   +  C ;      B    =   A
+        A=B+c; B=A
+```
+
+### LL(k) Parser
+
+* Read
+  * move through the tokens, building up the derivation
+  * in LL(k) you read from left to right (first L)
+  * Build a left-most derivation (second L)
+* Parses *top-down* (parse-tree from root down)
+* at most k "lookahead" symbols
+  * k is a fixed number
+
+```cpp
+<stmt> ::= A '=' <expr>
+<stmt> ::= B '=' <expr>
+<stmt> ::= C '=' <expr>
+
+Assume parser knows we need to apply a statement rule
+1. calls next_token
+2. check if token is an A, B, or C literal, pick corresponding rule
+3. call next_token
+4. check that the token is '='
+5. check that the rest of the stream fits with the <expr>
+```
+
+* You can only have an LL(k) parser if the grammar is structured to support LL(k)
+  * must be able to work with the size of k
+
+Tips:
+
+1. Watch out for left-recursion
+
+    ```cpp
+    e -> n
+    e -> e + n
+
+    (Note how e is on the *left* side. If there is anything to the right of the e)
+    Q: how far do we have to look ahead for the string:
+            "5+4+3"
+        k=6 for this example,
+        but there is no fixed k because it depends on the length of the example (L+1)
+
+    e -> n
+    e -> n + e
+        LL(2)
+
+    Can you get it to LL(1)?
+        e->n e`
+        e` -> + n e` | empty
+            technically you could argue that it is a LL(0) because you never really need to look ahead
+    ```
+
+2. Left factor
+
+    ```cpp
+    you had to read past the n to figure out if you had a plus or not.
+    we removed the common factor in the front to reduce the value of k
+
+    boolean expression:
+    e -> if b then s | if b then s else s
+        (if b then s) is a common factor. yuck!
+    this expression is not LL(k) because b and s can be of any length.
+    to fix this!
+
+    e -> if b then s e`
+    e` -> else s | empty
+        LL(1), just need to check if there is an else during the e_tail (e`)
+    ```
+
+3. Ambiguity
+   
+   ```cpp
+   e -> id | P
+   p-> [id] | id
+
+    multiple ways to get to 'id'
+   can end up with different parse trees for the exact same thing.

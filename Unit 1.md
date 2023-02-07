@@ -1,53 +1,56 @@
-# Notes for Unit 1 (or whenever I think we change topics)
+# Notes for Unit 1 (or whenever I think we change topics) <!-- omit in toc -->
 
 ## Table of Contents <!-- omit in toc -->
 
-* [Notes for Unit 1 (or whenever I think we change topics)](#notes-for-unit-1-or-whenever-i-think-we-change-topics)
-  * [Lecture 1](#lecture-1)
-    * [Course Overview](#course-overview)
-    * [Goals](#goals)
-    * [Some logistics](#some-logistics)
-    * [Grading](#grading)
-    * [What we are using](#what-we-are-using)
-    * [Expectations](#expectations)
-    * [MyPL Usage](#mypl-usage)
-      * [Info help with hw-1](#info-help-with-hw-1)
-      * [Intro Notes / Usage](#intro-notes--usage)
-  * [Monday 1](#monday-1)
-    * [Exercises](#exercises)
-  * [Lecture 2](#lecture-2)
-    * [Compilation](#compilation)
-      * [Front End Steps](#front-end-steps)
-      * [PL Backend Steps](#pl-backend-steps)
-    * [Interpretation](#interpretation)
-    * [MyPL Implementation](#mypl-implementation)
-    * [Paragraph Example](#paragraph-example)
-    * [Types of Interpreters](#types-of-interpreters)
-      * ["Transpiler"](#transpiler)
-    * [Lexical Analysis (Lexer)](#lexical-analysis-lexer)
-  * [Lecture 3](#lecture-3)
-    * [Tokens](#tokens)
-    * [Token Streams](#token-streams)
-      * [Examples](#examples)
-    * [Syntax](#syntax)
-    * [Formal Grammars](#formal-grammars)
-    * [Grammar Rules](#grammar-rules)
-      * [Construct](#construct)
-  * [Monday 2](#monday-2)
-    * [MyPL Quiz Notes](#mypl-quiz-notes)
-    * [GTest](#gtest)
-    * [Hints for HW2](#hints-for-hw2)
-  * [Lecture 4](#lecture-4)
-    * [Grammar Rules (Cont.)](#grammar-rules-cont)
-      * [Regular Rules](#regular-rules)
-      * [Contex Free Rules](#contex-free-rules)
-    * [BNF notation](#bnf-notation)
-  * [Lecture 5](#lecture-5)
-    * [Statement list](#statement-list)
-    * [Derivation](#derivation)
-    * [Parse Tree](#parse-tree)
-    * [LL(k) Parser](#llk-parser)
-    * [Exercise problems](#exercise-problems)
+* [Lecture 1](#lecture-1)
+  * [Course Overview](#course-overview)
+  * [Goals](#goals)
+  * [Some logistics](#some-logistics)
+  * [Grading](#grading)
+  * [What we are using](#what-we-are-using)
+  * [Expectations](#expectations)
+  * [MyPL Usage](#mypl-usage)
+    * [Info help with hw-1](#info-help-with-hw-1)
+    * [Intro Notes / Usage](#intro-notes--usage)
+* [Monday 1](#monday-1)
+  * [Exercises](#exercises)
+* [Lecture 2](#lecture-2)
+  * [Compilation](#compilation)
+    * [Front End Steps](#front-end-steps)
+    * [PL Backend Steps](#pl-backend-steps)
+  * [Interpretation](#interpretation)
+  * [MyPL Implementation](#mypl-implementation)
+  * [Paragraph Example](#paragraph-example)
+  * [Types of Interpreters](#types-of-interpreters)
+    * ["Transpiler"](#transpiler)
+  * [Lexical Analysis (Lexer)](#lexical-analysis-lexer)
+* [Lecture 3](#lecture-3)
+  * [Tokens](#tokens)
+  * [Token Streams](#token-streams)
+    * [Examples](#examples)
+  * [Syntax](#syntax)
+  * [Formal Grammars](#formal-grammars)
+  * [Grammar Rules](#grammar-rules)
+    * [Construct](#construct)
+* [Monday 2](#monday-2)
+  * [MyPL Quiz Notes](#mypl-quiz-notes)
+  * [GTest](#gtest)
+  * [Hints for HW2](#hints-for-hw2)
+* [Lecture 4](#lecture-4)
+  * [Grammar Rules (Cont.)](#grammar-rules-cont)
+    * [Regular Rules](#regular-rules)
+    * [Contex Free Rules](#contex-free-rules)
+  * [BNF notation](#bnf-notation)
+* [Lecture 5](#lecture-5)
+  * [Statement list](#statement-list)
+  * [Derivation](#derivation)
+  * [Parse Tree](#parse-tree)
+  * [LL(k) Parser](#llk-parser)
+  * [Exercise problems](#exercise-problems)
+* [Lecture 6](#lecture-6)
+  * [Statement List (Cont.)](#statement-list-cont)
+  * [Recursive Descent](#recursive-descent)
+  * [HW3](#hw3)
 
 ## Lecture 1
 
@@ -1008,3 +1011,142 @@ EOS
     l -> a | b | c | ... | z
     p -> ep` | empty
     p` -> ,p | empty
+    ```
+
+## Lecture 6
+
+### Statement List (Cont.)
+
+```c
+<stmt_list> ::= < <stmt> | <stmt>';'<stmt_list>
+<stmt> ::= <var> '=' <expr>
+<var> ::= 'A' | 'B' | 'C'
+<expr> ::= <var> | <var> '+' <var> | <var> '-' <var>
+```
+
+* Is this grammar LL(k)?
+  * Yes!
+* What is the value of k?
+  * k=6
+  * for `<stmt_list>` you need to look ahead of `<stmt>`, which is `<var> '=' <expr`, but `<expr>` can be length of 3. adding all those together is 6
+
+Rewritten as `LL(1)`
+
+```c
+<stmt_list> ::= < <var> = <expr> <stmt_list_tail> 
+<stmt_list_tail> ::= ; <stmt_list> | empty
+<expr> ::= <var> <expr_tail>
+<expr_tail> ::= '+' <var> |  '-' <var> | empty
+<var> ::= 'A' | 'B' | 'C'
+```
+
+use the token stream as we try to do the derivation. If we cannot derive anything, it is not a valid input
+
+### Recursive Descent
+
+(Ad Hoc) / Manual Parsing
+
+* A style of parsing
+* A handcrafted recursive descent parser
+* usually a lot faster than a tool-generated parser
+
+Basic Idea:
+
+* Divide parser into separate methods or functions
+  * Typically one method per non-terminal
+    * for the previous lang. one method for `<stmt_list>`, one for `<stmt_list_tail>`, one for `<expr>`, one for `<expr_tail>`, and one for `<var>`
+    * Grammar rules for the non-terminal are encoded into the function
+      * "I better see a `<var>`! Ok i did, the next one better be an assignment!! Ok it is, next thing should be an expression, so im going to hand it off to the expression task person"
+* Only uses recursion if the grammar is recursion.
+  * if the grammar never has any recursive rules, `Recursive Descent` does not use recursion
+  * As we call these functions, we are descending the parse tree, one node at a time (recursively). thats where the name comes from
+
+### HW3
+
+```cpp
+class SimpleParser
+{
+    public:
+        SimpleParser(const Lexer& lexer);
+        void parse(); // itll either throw an exception/error, or just return (everything is fine)
+    private:
+        Lexer lexer;
+        Token curr_token;
+        // helpers
+        void advance(); // advances the token stream
+        bool match(TokenType t); // checking to make sure the current token has the type you need [e.g. if(match(INT_VAL)){...}]
+        bool match(initializer_list<TokenType> t); // same as before, but a list of tokens. so if curr_token is ONE of those [e.g. if(match({PLUS, MINUS}){...}
+        void eat(TokenType t, const String& msg); // checking the token, then advances. if it is not, throws msg as error [e.g. eat(INT_VAL, "Expecting Integer");
+        void error(const String& msg); // error helper
+        // recursive descent
+        void fun_def(); // checks for function definitions
+        void struct_def(); // checks for structs
+        // one for programs
+        // etc...
+
+
+}
+````
+
+example of `parse()` in `MyPL`
+
+```cpp
+// <program> ::= (<struct_def> | <fun_def>)*
+//           ||
+void parse(){
+    advance(); // sets us at the first token in the stream (before it is just chilling there before the token stream)
+    while(!match(TOKEN_TYPE::EOS)){
+        if(match(TOKEN_TYPE:STRUCT)){
+            struct_def();
+        }else{
+            fun_def(); // if it isn't, fun_def will handle the errors
+        }
+    }
+
+    // bla bla
+
+}
+```
+
+other grammar example
+
+```cpp
+void parse()
+{
+    advance();
+    stmt_list();
+    eat(EOS, "...");
+}
+
+void stmt_list(){
+    eat(VAR, "There is supposed to be a var here");
+    eat(ASSIGN, "There is supposed to be an assign here");
+    expr();
+    stmt_list_tail();
+}
+
+void stmt_list_tail(){
+    if(match(SEMI)){
+        advance();
+        stmt_list();
+    }
+    // must be empty
+    // but we already check this in parse()
+
+}
+
+void expr(){
+    eat(VAR, "expected a var");
+    expr_tail();
+}
+
+void expr_tail(){
+    if(match(PLUS)){
+        advance();
+        eat(VAR, "Expected a var");
+    }else if(match(MINUS)){
+        advance();
+        eat(VAR, "Expected a var");
+    }
+}
+```

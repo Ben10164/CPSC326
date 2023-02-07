@@ -47,6 +47,7 @@
     * [Derivation](#derivation)
     * [Parse Tree](#parse-tree)
     * [LL(k) Parser](#llk-parser)
+    * [Exercise problems](#exercise-problems)
 
 ## Lecture 1
 
@@ -907,10 +908,103 @@ Tips:
     ```
 
 3. Ambiguity
-   
+
    ```cpp
    e -> id | P
    p-> [id] | id
 
     multiple ways to get to 'id'
    can end up with different parse trees for the exact same thing.
+
+## Monday 3
+
+### Quiz 2 answers
+
+#### Front-end compilation steps
+
+1. Source code
+2. Lexical Analysis (Lexer)
+   * Token Stream
+3. Syntax Analysis (parser)
+   * AST
+     * Abstract Syntax Tree
+4. Semantic Analysis (type checker)
+   * AST ++
+5. BACKEND!
+
+#### Code to Tokens
+
+Code Snippet
+
+```cpp
+bool check (Node head){
+    bool r = head.val <= 0
+    return r
+}
+```
+
+Tokens
+
+```cpp
+BOOL_TYPE, ID(check), LPAREN, ID(Node), ID(head), RPAREN, LBRACE, 
+    BOOL_TYPE, ID(r), ASSIGN, ID(head), DOT, ID(val), LESSEQ, INT_VAL(0), 
+    RETURN, ID(r), 
+RBRACE, 
+EOS
+```
+
+### Exercise problems
+
+1. Define a grammar for performing zero or more sequences of addition operations over single0digit values 0, 1, 2, ... 9, where 0 + 1, 1 + 0 + 3, 1 + 2 + 3 + 4 are all in the language
+
+    ```c
+    e -> v | v + e 
+    v -> 0 | 1 | 2 | 3 | ... | 9
+    ```
+
+2. Expend the previous answer to support minus, times, divide
+
+    ```c
+    e -> v | v + e | v - e | v * e | v / e
+    v -> 0 | 1 | 2 | 3 | ... | 9
+    ```
+
+3. Extend (2) with function calls (function names are single-leters)
+
+    ```c
+    Examples:
+    0 + f()
+    f(1 * g(2) + 3)
+    8 * f(3, g(4,5), h(5) / 2) + 1
+
+    e -> v | v + e | v - e | v * e | v / e
+    v -> n | c
+    n -> 0 | 1 | 2 | 3 | ... | 9 
+    c -> l(p)
+    l -> a | b | c | ... | z
+    p -> e | e, p | empty
+    ```
+
+4. Is our grammar LL(k)? If so, wha t is k? If not, rewrite appropriately
+   * It is not because of the left side commanality in p `p-> e | e,p | empty|
+
+    ```c
+    e -> v | v + e | v - e | v * e | v / e  -- not LL(k) [same as p]
+    v -> n | c                              -- 1 lookahead
+    n -> 0 | 1 | 2 | 3 | ... | 9            -- 1 lookahead
+    c -> l(p)                               -- only one rule, 0 lookahead
+    l -> a | b | c | ... | z                -- 1 lookahead
+    p -> e | e, p | empty                   -- you need to look over e, but e is not a fixed length. NOT LL(k)
+    ```
+
+    fix
+
+    ```c
+    e -> ve`
+    e` -> + e | - e| * e | / e | empty
+    v -> n | c
+    n -> 0 | 1 | 2 | 3 | ... | 9 
+    c -> l(p)
+    l -> a | b | c | ... | z
+    p -> ep` | empty
+    p` -> ,p | empty

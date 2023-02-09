@@ -51,6 +51,9 @@
   * [Statement List (Cont.)](#statement-list-cont)
   * [Recursive Descent](#recursive-descent)
   * [HW3](#hw3)
+* [Lecture 7](#lecture-7)
+  * [Abstract Syntax Trees \& Parsing](#abstract-syntax-trees--parsing)
+  * [New Techniques in MyPL](#new-techniques-in-mypl)
 
 ## Lecture 1
 
@@ -249,7 +252,7 @@ void print_leaves(const Node* root){
 
 ### Exercises
 
-1. Write a MyPL function that computes the sum of a given array of integer values
+1. Write a `MyPL` function that computes the sum of a given array of integer values
 
     ```c
     int sum(array int xs){
@@ -261,7 +264,7 @@ void print_leaves(const Node* root){
     }
     ```
 
-1. Write a MyPL program that repeatedly prompts a user for a number until thy enter "-1", and then prints out the sum of the numbers they entered (excluding -1)
+1. Write a `MyPL` program that repeatedly prompts a user for a number until thy enter "-1", and then prints out the sum of the numbers they entered (excluding -1)
 
     ```c
     void main(){
@@ -280,7 +283,7 @@ void print_leaves(const Node* root){
     }
     ```
 
-1. Implement Merge Sort in MyPL
+1. Implement Merge Sort in `MyPL`
 
     ```c
     void merge_sort(array int A, int start, int end){
@@ -290,6 +293,7 @@ void print_leaves(const Node* root){
             merge_sort(A, mid + 1, end) # recursive step
             merge(A, start, mid, end)   # merge sublists
         }
+    }
 
 ## Lecture 2
 
@@ -374,7 +378,7 @@ Semantic Analysis
 
 ### MyPL Implementation
 
-* MyPL will do what python does
+* `MyPL` will do what python does
 * produces ByteCode that will be run in a virtual machine
   * we will be making this VM
 * ByteCode will just be a bunch of instructions
@@ -467,8 +471,7 @@ Example of Token Stream from source code
 `Source Code:`
 
 ```c
-int f()
-{
+int f(){
     int x = 0
     return x
 }
@@ -676,6 +679,7 @@ if(ch == '\''){
         // uh oh! there is an error!
         error("msg", line, column);
     }
+}
 
 ```
 
@@ -1064,25 +1068,24 @@ Basic Idea:
 ### HW3
 
 ```cpp
-class SimpleParser
-{
-    public:
-        SimpleParser(const Lexer& lexer);
-        void parse(); // itll either throw an exception/error, or just return (everything is fine)
-    private:
-        Lexer lexer;
-        Token curr_token;
-        // helpers
-        void advance(); // advances the token stream
-        bool match(TokenType t); // checking to make sure the current token has the type you need [e.g. if(match(INT_VAL)){...}]
-        bool match(initializer_list<TokenType> t); // same as before, but a list of tokens. so if curr_token is ONE of those [e.g. if(match({PLUS, MINUS}){...}
-        void eat(TokenType t, const String& msg); // checking the token, then advances. if it is not, throws msg as error [e.g. eat(INT_VAL, "Expecting Integer");
-        void error(const String& msg); // error helper
-        // recursive descent
-        void fun_def(); // checks for function definitions
-        void struct_def(); // checks for structs
-        // one for programs
-        // etc...
+class SimpleParser{
+public:
+    SimpleParser(const Lexer& lexer);
+    void parse(); // itll either throw an exception/error, or just return (everything is fine)
+private:
+    Lexer lexer;
+    Token curr_token;
+    // helpers
+    void advance(); // advances the token stream
+    bool match(TokenType t); // checking to make sure the current token has the type you need [e.g. if(match(INT_VAL)){...}]
+    bool match(initializer_list<TokenType> t); // same as before, but a list of tokens. so if curr_token is ONE of those [e.g. if(match({PLUS, MINUS}){...}
+    void eat(TokenType t, const String& msg); // checking the token, then advances. if it is not, throws msg as error [e.g. eat(INT_VAL, "Expecting Integer");
+    void error(const String& msg); // error helper
+    // recursive descent
+    void fun_def(); // checks for function definitions
+    void struct_def(); // checks for structs
+    // one for programs
+    // etc...
 
 
 }
@@ -1111,8 +1114,7 @@ void parse(){
 other grammar example
 
 ```cpp
-void parse()
-{
+void parse(){
     advance();
     stmt_list();
     eat(EOS, "...");
@@ -1150,3 +1152,174 @@ void expr_tail(){
     }
 }
 ```
+
+## Lecture 7
+
+### Abstract Syntax Trees & Parsing
+
+An AST is like an “expression tree"
+
+* The left side is (expression) to the right side
+
+```c
+    * 
+  /  \
+ 5    -             
+     / \
+   5    6
+
+5 * (5-6)
+```
+
+The AST is used:
+
+* Semantic Analysis
+* Code Generation
+* Pretty Printer
+  * Will be similar a similar approach to the idea of an "expression tree"
+    * `(5*(5-6)
+    * when going to the left, add a left paren, when going to the right (and hit a node) add a right paren
+
+```cpp
+<stmt_list> ::= VAR ASSIGN <expr> <stmt_list_tail>
+<stmt_list_tail> ::=  SEMICOLON <stmt_list>
+<expr> ::= VAR <expr_tail>
+<expr_tail> ::= PLUS VAR |  MINUS VAR | empty
+```
+
+what do we need?
+
+* statement lists class (`StmtList`)
+* statement class (`Stmt`)
+* expressions (`Expr`)
+
+"Plain Old Data" (POD) classes
+
+* basically just structs (CStructs)
+* we will be using these for `MyPL`
+* Just stores the information, no need for a getter or setter.
+* very simple and easy to use
+* no inheritance
+
+```cpp
+class Parser{
+public:
+    Parser(const Lexer& lexer)
+    StmtList parse();
+private:
+    Lexer lexer;
+    Token curr_token;
+    
+    // helpers
+
+    // rec. descent functions 
+    void stmt_list(StmtList& node);
+    void stmt_list_tail(StmtList& node);
+    void expr(Expr& node);
+    void expr_tail(Expr& node);
+
+};
+
+class Expr{
+public:
+    Token lhs;
+    Token op;  // nay or may not be there
+    Token rhs; // may or may not be there
+};
+
+class Stmt{
+public:
+    Token var;
+    // dont need an Assignment token, it is always there
+    Expr expr;
+};
+
+class StmtList{
+public:
+    vector<Stmt> stmts;
+};
+
+// original version of parse
+void parse(){
+    advance();
+    stmt_list();
+    eat(EOS, "...");
+}
+
+// version of parse that builds up the root of the AST structure
+// NOTE: root is a stmt_list
+StmtList parse(){
+    advance();
+    StmtList node;
+    stmt_list(node);
+    eat(EOS, "...");
+
+    return node;
+}
+
+void stmt_list(StmtList& node){
+    Stmt s;
+    s.var = curr_token;
+    eat(VAR, "...");
+    eat(ASSIGN, "...");
+    Expr e;
+    expr(e); // expr will build up e for us
+    s.expr = e;
+    node.statements.push_back(s);
+    stmt_list_tail(node);
+};
+
+void expr(Expr& node){
+    node.lfs = curr_token;
+    eat(VAR, "...");
+    expr_tail(node);
+}
+
+void expr_tail(Expr& node){
+    if(match({PLUS, MINIS}){
+        node.op = curr_token;
+        advance();
+        node.rhs = curr_token;
+        eat(VAR, "...");
+    }
+}
+```
+
+you can acomplish the optional right hand side a few ways.
+
+1. a boolean `hasLFS`
+2. setting values to NULL;
+3. `std::optional`
+
+    ```cpp
+    optional<Token> op; // this is the value of nullopt
+    if(op.has_value()){
+        Token opt_token = optvalue();
+    }
+
+    ```
+
+    * we would make both the op and rhs optional in this case
+
+    ```cpp
+    optional<Token<op;
+    optional<Token>rhs;
+    ```
+
+### New Techniques in MyPL
+
+in `MyPL` we are going to use
+
+* `std::optional`
+* `std::vector`
+* `std::shared_ptr`
+  * pass by reference
+  * "smart pointers"
+  * c++ does all of the memory managment for you, no need for `delete`!!!
+
+    ```cpp
+    shared_ptr<MyClass> ptr = make_shared<MyClass>();
+    ptr->field();
+    *ptr;
+    // just like a normal pointer, but without needing to delete it
+    ```

@@ -2,6 +2,7 @@
 
 ## Table of Contents <!-- omit in toc -->
 
+* [Note:](#note)
 * [Lecture 1](#lecture-1)
   * [Course Overview](#course-overview)
   * [Goals](#goals)
@@ -57,6 +58,15 @@
 * [Monday 4](#monday-4)
   * [Quiz 3 Answers](#quiz-3-answers)
   * [AST classes](#ast-classes)
+* [Lecture 8](#lecture-8)
+  * [Pretty Print for HW4](#pretty-print-for-hw4)
+  * [Navigating AST](#navigating-ast)
+    * [Visitor Pattern](#visitor-pattern)
+
+## Note:
+
+Assume all images are drawn by Dominic O.  
+I might draw a few, but the majority will be drawn by him.
 
 ## Lecture 1
 
@@ -1455,6 +1465,7 @@ public:
     ...
 }
 
+------
 
 optional things you can make:
     has_value();
@@ -1469,6 +1480,7 @@ if (e.op.has_value()){
     // stuff with e.rest
 }
 
+------
 
 to create: make_shared<>()
 
@@ -1479,10 +1491,151 @@ void ASTParser::expr(Expr& e){
     e.first = t;
 }
 
+------
 
 if(bin_op()){
     e.op = curr_token;
     advance();
     e.rest = make_shared<Expr>();
     expr(*e.rest);
+}
 ```
+
+## Lecture 8
+
+### Pretty Print for HW4
+
+```bash
+# print-1.mypl is the poorly formatted file
+./mypl --print examples/print-1.mypl > out.txt
+
+# print-1.out is the correct output
+diff out.txt examples/print-1.out # if this doesnt print anything, it is correct
+```
+
+```cpp
+void
+    main
+    (
+        ){
+print("hi"
+    )
+}
+
+// will become 
+
+void main() {
+    print("Hi")
+}
+```
+
+To do this, we will be navigating an AST
+
+### Navigating AST
+
+#### Visitor Pattern
+
+The **visitor** pattern allows:
+
+1. Functions over an object structure (e.g. `AST`) are decoupled from the object structure
+2. This means you can have many different functions, without having to change the object structure
+
+![Visitor-1](images/visitor-1.png)
+
+* all elements are `<<interface>>`
+
+![Visitor-2](images/visitor-2.png)
+
+```cpp
+ElementA e;
+visitor1 v1;
+e.accept(v1);
+
+visitor2 v2;
+e.accpent(v2);
+```
+
+```cpp
+// all that accept does:
+v.visit(*this);
+```
+
+Double Dispatch
+
+```cpp
+obj.f(v);
+// this could be dynamic.
+// you dont know at compile time what kind of obj you have
+// at compile time, you dont know what version of f you are running because v is overloaded
+// you need double dispatch:
+    // at runetine it will figure out what type obj is and determine what function to call
+// cpp and java do not handle double dispatch :( 
+```
+
+* Lets say you have a class named ExprNode
+  * `accept(visitor v)`
+    * calls `v.visit(*this)`
+* SUBCLASSES
+  * ValueNode
+    * `value: int`
+    * `accept(visitor v)`
+  * PlusNode
+    * `ExprNode *leftExpr`
+    * `ExprNode *rightExpr`
+    * `accept(visitor v)`
+  * TimeNode
+    * `ExprNode *leftExpr`
+    * `ExprNode *rightExpr`
+    * `accept(visitor v)`
+* `visitor <<interface>>`
+  * `visit(ValueNode&)`
+  * `visit(PlusNode&)`
+  * `visit(TimesNode&)`
+* SUBCLASSES
+  * PrintVisitor
+    * `visit(ValueNode&)`
+    * `visit(PlusNode&)`
+    * `visit(TimesNode&)`
+
+![Visitor-3](images/visitor-3.png)
+
+```cpp
+class PrintVisitor:public visitor
+{
+public:
+    void visit(ValueNode& n);
+    void visit(PlusNode& n);
+    void visit(TimesNode& n);
+};
+```
+
+```cpp
+void PrintVisitor::visit(ValueNode& n){
+    cout << n.value;
+}
+void PrintVisitor::visit(PlusNode& n){
+    n.leftExpr->accept(*this); // print itself
+    cout << " + "; 
+    n.rightExpr->accept(*this); // print itself
+}
+void PrintVisitor::visit(TimesNode& n){
+    n.leftExpr->accept(*this); // print itself
+    cout << " * "; 
+    n.rightExpr->accept(*this); // print itself
+}
+```
+
+![ast-classes](images/ast-classes.png)
+
+[Here](images/ast-classes.png) is the image
+
+```cpp
+class ForStmt : public Stmt
+{
+public:
+    VarDeclStmt var_decl;
+    Expr cond;
+    AssignStmt assign_stmt;
+    vector<shared_ptr<Stmt>>;
+    accept(visitor& v);
+};

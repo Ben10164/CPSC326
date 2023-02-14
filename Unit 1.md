@@ -54,6 +54,9 @@
 * [Lecture 7](#lecture-7)
   * [Abstract Syntax Trees \& Parsing](#abstract-syntax-trees--parsing)
   * [New Techniques in MyPL](#new-techniques-in-mypl)
+* [Monday 4](#monday-4)
+  * [Quiz 3 Answers](#quiz-3-answers)
+  * [AST classes](#ast-classes)
 
 ## Lecture 1
 
@@ -1071,7 +1074,7 @@ Basic Idea:
 class SimpleParser{
 public:
     SimpleParser(const Lexer& lexer);
-    void parse(); // itll either throw an exception/error, or just return (everything is fine)
+    void parse(); // it'll either throw an exception/error, or just return (everything is fine)
 private:
     Lexer lexer;
     Token curr_token;
@@ -1230,7 +1233,7 @@ public:
 class Stmt{
 public:
     Token var;
-    // dont need an Assignment token, it is always there
+    // don't need an Assignment token, it is always there
     Expr expr;
 };
 
@@ -1285,7 +1288,7 @@ void expr_tail(Expr& node){
 }
 ```
 
-you can acomplish the optional right hand side a few ways.
+you can accomplish the optional right hand side a few ways.
 
 1. a boolean `hasLFS`
 2. setting values to NULL;
@@ -1315,7 +1318,7 @@ in `MyPL` we are going to use
 * `std::shared_ptr`
   * pass by reference
   * "smart pointers"
-  * c++ does all of the memory managment for you, no need for `delete`!!!
+  * c++ does all of the memory management for you, no need for `delete`!!!
 
     ```cpp
     shared_ptr<MyClass> ptr = make_shared<MyClass>();
@@ -1323,3 +1326,163 @@ in `MyPL` we are going to use
     *ptr;
     // just like a normal pointer, but without needing to delete it
     ```
+
+## Monday 4
+
+### Quiz 3 Answers
+
+```cpp
+<p> ::= <v> | <v> '[' <n> ']' | <v> '.' <p> | <v> '[' <n> ']' '.' <p>
+<v> ::= 'a' | ... | 'z'
+<n> ::= '0' | ... | '9'
+```
+
+`derive x.y[2].z`
+
+left-most:
+
+```cpp
+<p> => <v>.<p>
+<v>.<p> => x.<p>
+x.<p> => x.<v>[<n>].<p>
+x.<v> [<n>].<p> => x.y[<n>].<p>
+x.<v> [<n>].<p> => x.y[2].<p>
+x.y[2].<p> => x.y[2].z
+```
+
+right-most:
+
+```cpp
+<p> => <v>.<p>
+<v>.<p> => <v>.<v>[<n>].<p>
+<v>.<v>[<n>].<p> => <v>.<v>[<n>].<v>
+<v>.<v>[<n>].<v> => <v>.<v>[<n>].z
+<v>.<v>[<n>].z => <v>.<v>[2].z
+<v>.<v>[2].z => <v>.y[2].z
+<v>.y[2].z => x.y[2].z
+```
+
+This grammar is LL(k). what is k?
+
+k = 5
+
+* You need 5 lookahead for distinguishing  `<v> '.' <p>` and `<v> '[' <n> ']' '.' <p>`
+
+Make this grammar ll(1):
+
+```cpp
+<p> ::= <v> <p`>
+<p`> ::= empty | '.' <p> | '[' <n> ']' <p``>
+<p``> ::= empty | '.' <p>
+```
+
+### AST classes
+
+```cpp
+class Expr
+{
+public:
+    Token lhs;
+    optional<Token> op;
+    optional<Token> rhs;
+};
+
+class Stmt
+{
+public:
+    Token var;
+    Expr expr;
+};
+
+class StmtList
+{
+public:
+    vector<Stmt> stmts
+};
+
+StmtList parse(){
+    advance();
+    StmtList node;
+    stmt_list(node);
+    eat(EOS, "...");
+    return node;
+}
+
+void stmt_list(StmtList& node){
+    Stmt s;
+    s.var = curr_token;
+    eat(VAR, "...");
+    eat(ASSIGN, "...");
+    Expr e;
+    expr(e);
+    s.rhs = e;
+    node.stmts.push_back(s);
+}
+
+void stmt_list_tail(StmtList& node){
+    if(match(SEMICOLON)){
+        advance();
+        stmt_list(node);
+    }
+}
+
+void expr(Expr& node){
+    node.lhs = curr_token;
+    eat(VAR, "...");
+    expr_tail(node);
+}
+
+void expr_tail(Expr& node){
+    if(match({PLUS, MINUS}){
+        node.op = curr_token;
+        advance();
+        node.rhs = curr_token;
+        eat(VAR, "...");
+    }
+}
+```
+
+HW-4
+
+```cpp
+class Expr : public ASTNode
+{
+public:
+    bool negated = false;
+    shared_ptr<ExprTerm> first = nullptr;
+    optional<Token> op = nullopt;
+    shared_ptr<Expr> rest = nullptr;
+    ...
+}
+
+
+optional things you can make:
+    has_value();
+    value();
+
+e.op = curr_token; // sticking it in the optional box
+
+if (e.op.has_value()){
+    ...
+    out << " " << e.op.value().lexeme() << " ";
+    ...
+    // stuff with e.rest
+}
+
+
+to create: make_shared<>()
+
+void ASTParser::expr(Expr& e){
+    ...
+    shared_ptr<ComplexTerm> t = make_shared<ComplexTerm>();
+    expr(t->expr);
+    e.first = t;
+}
+
+
+if(bin_op()){
+    e.op = curr_token;
+    advance();
+    e.rest = make_shared<Expr>();
+    expr(*e.rest);
+```

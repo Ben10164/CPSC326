@@ -2,7 +2,7 @@
 
 ## Table of Contents <!-- omit in toc -->
 
-* [Note:](#note)
+* [Important Note](#important-note)
 * [Lecture 1](#lecture-1)
   * [Course Overview](#course-overview)
   * [Goals](#goals)
@@ -62,8 +62,15 @@
   * [Pretty Print for HW4](#pretty-print-for-hw4)
   * [Navigating AST](#navigating-ast)
     * [Visitor Pattern](#visitor-pattern)
+  * [AST Classes](#ast-classes-1)
+* [Lecture 9](#lecture-9)
+  * [Operator Associativity](#operator-associativity)
+    * [Example](#example)
+  * [Approaches to deal w/ left-associativity](#approaches-to-deal-w-left-associativity)
+    * [2nd Approach](#2nd-approach)
+  * [Operator Precedence](#operator-precedence)
 
-## Note:
+## Important Note
 
 Assume all images are drawn by Dominic O.  
 I might draw a few, but the majority will be drawn by him.
@@ -1625,6 +1632,8 @@ void PrintVisitor::visit(TimesNode& n){
 }
 ```
 
+### AST Classes
+
 ![ast-classes](images/ast-classes.png)
 
 [Here](images/ast-classes.png) is the image
@@ -1639,3 +1648,87 @@ public:
     vector<shared_ptr<Stmt>>;
     accept(visitor& v);
 };
+```
+
+## Lecture 9
+
+### Operator Associativity
+
+`a*(b*c) == (a*b)*c`
+
+* Determing the proterties of an operator with and without parenthesis.
+  * how do we interpret `a*b*c`?
+* Left associative operators
+  * `a*b*c*d == ((a*b)*c)*d
+  * `+`, `*`, `/`, `-`
+* Right associative operators
+  * `^` (exponent)
+
+#### Example
+
+`40/10/2` $\equiv$ `(40/10)/2` $=$ `2`  
+
+* Grammar rule
+  * `e -> e / n`
+    * LEFT RECURSIVE
+      * no fixed k, not `ll(k)`
+
+`e->e/n`  
+![Op-As-1](images/Op-As-1.png)
+
+`e->n/e`  
+![Op-As-2](images/Op-As-2.png)
+
+### Approaches to deal w/ left-associativity
+
+1. Modify AST after parsing with a right-associativity
+   * `e->n/e`
+   * Do a left rotation on the tree
+   * This might not be so easy
+1. Modify grammar and modify recursive descent parser (We will be doing this)
+
+#### 2nd Approach
+
+Modify grammar and modify recursive descent parser
+
+`e->n/e` will be rewritten as `e->n(/n)*` with a kleene star
+
+```cpp
+shared_ptr<Expr> Parser::e(){
+    shared_ptr<ValExpr> v = make_shared<ValExpr>();
+    v->val = curr_token;
+    eat(VAL, "..."); // an n
+    while(match(DIV)){
+        advance();
+1. Modify grammar and modify recursive descent parser (We will be doing this)
+        shared_ptr<ValExpr> v2 = make_shared<ValExpr>();
+        v2.val = curr_token;
+        eat(VAL, "...");
+        shared_ptr<DivExpr> tmp = make_shared<DivExpr>();
+        tmp->lhs = v1;
+        tmp->rhs = v2;
+        v1 = tmp;
+    }
+    return v1;
+}
+```
+
+### Operator Precedence
+
+(PEMDAS)
+
+* You can encode precedence into the grammar
+  * `2+3/4` = `2+(3/4)`
+  * `2/3+4` = `(2/3)+4`
+
+```cpp
+e -> t (PLUS t)*
+t -> INT (DIVIDE INT)*
+
+or
+
+e -> t e`
+e`-> PLUS t e` | empty
+t -> INT t`
+t` -> DIVIDE INT t` | empty
+```

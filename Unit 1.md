@@ -69,6 +69,11 @@
   * [Approaches to deal w/ left-associativity](#approaches-to-deal-w-left-associativity)
     * [2nd Approach](#2nd-approach)
   * [Operator Precedence](#operator-precedence)
+* [Lecture 10](#lecture-10)
+  * [Semantic Analysis Terminology](#semantic-analysis-terminology)
+  * [The goal of Semantic Analysis](#the-goal-of-semantic-analysis)
+    * [HW5](#hw5)
+  * [Environments, Slopes, and Symbol Tables](#environments-slopes-and-symbol-tables)
 
 ## Important Note
 
@@ -1725,10 +1730,148 @@ shared_ptr<Expr> Parser::e(){
 e -> t (PLUS t)*
 t -> INT (DIVIDE INT)*
 
-or
+// or
 
 e -> t e`
 e`-> PLUS t e` | empty
 t -> INT t`
 t` -> DIVIDE INT t` | empty
 ```
+
+## Lecture 10
+
+### Semantic Analysis Terminology
+
+"Denotable Objects"
+
+* There are things in a language in which names can be provided for
+  * module/library, variable, class, struct, etc...
+* Items that can be "named" in a Programming Language
+* By the programmer (vars, functions, classes, ...) [Important]
+* By the language itself (primitive types [`bool` vs `Boolean`], built-in functions)
+
+Blocks
+
+* A textual region of a program
+  * function body, loop body, etc...
+* Syntax defines a block
+  * curley braces or indentation or that kind of thing
+* Declarations occur within blocks
+  * naming something occurs within it
+  * sub blocks occur!
+
+Bindings
+
+* Association between names and "objects"/items (generally)
+* type bindings
+  * associating a name to a type
+* location binding
+  * associating a name to a location in memory (variable)
+  * value can change! [indirect binding]
+* value bindings
+  * associating a name to corresponding values
+  * value can not change! [direct binding]
+    * think of a const or having a name be an alias for a value (not using memory)
+
+Environments/Contexts
+
+* Current set of bindings of a program, statement, expression
+  * Very dynamic
+* typing environments
+  * For some name, what is the type associated with that name? (assuming it is visible at that point)
+* location & value environments
+  * For some name, what is the value associated with that name at this moment (assuming it is visible at that point)
+
+Scope/Visibility Rules
+
+* Define what names are visible in which blocks
+* An item is *local* to the block it is declared in
+* In general, an item/object is visible in local block & its descentant blocks (containing blocks)
+
+Static vs Dynamic
+
+* Staic means before runetime (e.g. at compile time)
+  * any stage of the frontend compiler/interpreter
+    * lexing, parsing, analyzing, etc...
+* Dynamic means during runetime
+  * type_errors in python
+
+Static Scoping
+
+* Visibility depends on text *layout* of code
+* Can be determined at compile time
+* What we normally think of as scope rules
+
+Dynamic Scoping
+
+* Visibility determined at/during *runetime*
+* Based on last association created for the name in current environment
+
+### The goal of Semantic Analysis
+
+Detect errors due to type issues
+
+```cpp
+x = 0 + "i"
+
+if (42 <= true){
+    x = 1
+}
+
+int y = "hi"
+```
+
+Detect "user before def" errors
+
+```cpp
+int x = 42 + y
+int y = 1
+
+if (x > 42){
+    int y = x + 1
+}else{
+    x = y
+}
+```
+
+Other things to catch at compile time
+
+```cpp
+struct S {int x. double x}
+
+int f(int x, double x){...}
+
+int add(int x, int y){return x + y}
+int r1 = add(1,2,3)
+int r2 = add(3.14, 1)
+bool r2 = add(3,1)
+```
+
+Variable/type shadowing
+
+```cpp
+void main(){
+    int x = 0
+    .
+    .
+    .
+    int x = 5
+}
+```
+
+#### HW5
+
+* Navigate AST using visitor pattern
+* During navigation: infer types (e.g. expressions) & look for type errors
+
+1. `int x = 10`
+   * check and infer type on RHS, compare inferred type to declared type
+2. `int r = 0`
+   * check and infer type on RHS, compare inferred type to declared type
+3. `while(x>0){`
+   * infer the type of while expression, compare expression inside type to a bool
+4. `r = r + x`
+6. `x = x - 1`
+7. `}`
+
+### Environments, Slopes, and Symbol Tables

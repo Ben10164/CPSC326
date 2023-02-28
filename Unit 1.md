@@ -73,7 +73,9 @@
   * [Semantic Analysis Terminology](#semantic-analysis-terminology)
   * [The goal of Semantic Analysis](#the-goal-of-semantic-analysis)
     * [HW5](#hw5)
-  * [Environments, Slopes, and Symbol Tables](#environments-slopes-and-symbol-tables)
+* [Monday 5](#monday-5)
+  * [Tips For HW-5](#tips-for-hw-5)
+    * [Built in functions in MyPL](#built-in-functions-in-mypl)
 
 ## Important Note
 
@@ -1577,8 +1579,8 @@ Double Dispatch
 ```cpp
 obj.f(v);
 // this could be dynamic.
-// you dont know at compile time what kind of obj you have
-// at compile time, you dont know what version of f you are running because v is overloaded
+// you don't know at compile time what kind of obj you have
+// at compile time, you don't know what version of f you are running because v is overloaded
 // you need double dispatch:
     // at runetine it will figure out what type obj is and determine what function to call
 // cpp and java do not handle double dispatch :( 
@@ -1790,7 +1792,7 @@ Scope/Visibility Rules
 
 Static vs Dynamic
 
-* Staic means before runetime (e.g. at compile time)
+* Static means before runetime (e.g. at compile time)
   * any stage of the frontend compiler/interpreter
     * lexing, parsing, analyzing, etc...
 * Dynamic means during runetime
@@ -1870,8 +1872,285 @@ void main(){
    * check and infer type on RHS, compare inferred type to declared type
 3. `while(x>0){`
    * infer the type of while expression, compare expression inside type to a bool
+   * look up x in the environment. and if it is, what type is it
 4. `r = r + x`
-6. `x = x - 1`
-7. `}`
+5. `x = x - 1`
+6. `}`
 
-### Environments, Slopes, and Symbol Tables
+We need a way to keep track of environment info as we do sem. analysis
+
+* Symbol table
+  * names -> types
+  * given the name, it will tell us the type
+  * as we enter a new block or a new scope, we will update the symbol table
+
+```cpp
+class SymbolTable
+{
+public:
+    void push_environment();
+    void pop_environment();
+    bool empty();
+    //
+    void add(const string& name, const DataType& info);
+    //
+    bool name_exists(const string& name) const;
+    bool name_exists_in_curr_env(const string& name) const;
+    //
+    optional<DataType> get(const string& name) const;
+};
+
+..
+symbol_table.push_environment();
+for(auto stmt: s.stmts){
+    stmt->accept(*this);
+}
+symbol_table.pop_environment();
+
+
+class SemanticChecker : public visitor
+{
+public:
+    SemanticChecker();
+    void visit(Program& p);
+    void visit(FunDef& f);
+    ...
+private:
+    SymbolTable symbol_table;
+    DataType curr_type;
+    unordered_map<string,FunDef> fun_def;
+
+};
+
+class DataType
+{
+public:
+    bool is_array;
+    string type_name;
+};
+
+void SemanticChecker::visit(SimpleRValue& v){
+    if(v.value.type() == TokenType::INT_VAL)
+        curr_type = DataType{false, "int"};
+    else if(v.value.type() == TokenType::DOUBLE_VAL)
+        curr_type = DataType{false, "double"};
+    ... bool char, string
+    else if(v.value.type() == TokenType::NULL_VAL)
+        curr_type = DataType{false, "void"};
+}
+```
+
+## Monday 5
+
+### Tips For HW-5
+
+* Unordered Sets are useful in a few place:
+
+```cpp
+// unordered set uses hashing!
+unordered_set<string> param_names; // the names of the parameters. we don't want any duplicates!!
+
+.contains()
+
+if(param_names.contains(p)){
+    ...
+}
+```
+
+* Foreach loops in c++:
+
+```cpp
+for(const VarDef& p : f.params){
+    // const because we aren't going to change p
+    // we have a reference because its more efficient, you don't need to make a copy of it
+    // especially use reference if there are vectors involved!
+    ...
+}
+for(auto p : f.params){
+    // makes a copy! uh oh
+    ...
+}
+for(const auto& p : f.params){
+    // much more efficient :)
+    ...
+}
+```
+
+`static-for.mypl`  
+not the exact file, but similar idea
+
+```cpp
+void main(){
+    string x = ""
+    string y = ""
+
+    for(int x = 1; x <= 10; x = x + 1){
+        // the int x shadows the string x
+        // if they were in the exact same environment it would be an error        
+        // however, this int x is in its own sub-environment :)
+        int y = 10
+        int z = 20 + x
+        // int x = 30 
+            // uh oh this is bad. a bad example of shadowing -> type error
+        
+    }
+    // x = 5 
+        // uh oh this is bad
+        // we might be thinking we are accessing the int x, but it is out of scope
+        // otherwise we are assigning an int to the string x, which is bad!
+    
+    for(int x = 0; x < 10; x = x+1){
+        for(int x = 10; x >= 0; x = x-1){
+            ...
+            // also legal, but bad practice??
+        }
+        ...
+    }
+}
+```
+
+`static-arrays.mypl`
+
+```cpp
+void main(){
+    array int xs = new int[100]
+    xs[0] = 1
+    array string ys = new string[100]
+    ...
+    int x = xs[0]
+    array int xs_ref = xs;
+    // xs[1] = ys[0] 
+        // type error
+}
+```
+
+`static-structs.mypl`
+
+```cpp
+struct T1{}
+struct T2{int x}
+struct T3{int x, string y}
+struct T4{int x, string y, int z}
+struct T5{int x, T4 t}
+// we first get all the names before checking the parameters, so the order does not matter
+struct T6{T4 t, T5 t2, int x, int y}
+struct T7{int x, T7 n}
+// we already know the name, so we are okay with this
+struct Node{int val, Node next}
+
+void main(){
+    Node n1 = new Node
+    Node n2 = new Node
+    Node n3 = n1.next // don't need to create a new node
+    // by default it will be created with its defaul values,
+    // next set to null, val set to 0
+    n1.val = 10
+    n1.next = n2
+    ...
+}
+```
+
+`static-struct-arrays.mypl`
+
+```cpp
+struct Node {int val, array Node children} // a tree node! 0 or more children
+void main(){
+    array Node roots = new Node[20]
+    roots[0] = new Node
+    roots[0].val = 10
+    // now there are array expressions in our paths...
+    roots[0].children = new Node[5]
+    // we are type checking for this:
+        // we see new, its a type then brackets, so we are allocating an array of Node
+        // the datatype should be :
+            // {true, "Node"}
+        // now we look over on the left side, we need to figure out if roots[0].children is like that
+        // roots is a node array, but we access into it on a node. then we access the children val, which is also an array of nodes
+    roots[0].children[0] = new Node
+    // same idea as prev
+    roots[0].children[0].val = 10
+    // infer 10 as an int, then follow the process to see if .val of an index of .children of and index of roots is an int
+}
+```
+
+`static-fun-1.mypl`
+
+```cpp
+void f1(){
+    int x = 1
+    return null
+    // need to make sure the return type is the same as the value returned
+    // null has type void, but can also be used to return in any function
+}
+
+int f2(){
+    int x = 1
+    // well typed even though we never return anything
+    // f2() will return null
+}
+
+bool f3(){
+    return true
+    // just returning a value. simple :)
+    // must be the right one, otherwise its a type error
+}
+
+bool f4(){
+    bool x = f3()
+    // f3() evaluates to a type of whatever f3's type is (bool)
+    // assigning it to a bool, so its fine
+    return x
+    // infer the type of x, and check to see if it is the right type f4() is supposed to return
+}
+
+int f5(){
+    return f5()
+    // hmm, its returning itself
+    // well typed, but its an infinite loop...
+    // check to see if f5() is defined, then grab the return type and make sure it matches it!
+    // very easy
+}
+
+void f7(int x, bool y){
+    return f7(1,true)
+    // return type is void
+    // returning a value of type void (null)
+    // void matches void, so we are good
+}
+```
+
+#### Built in functions in MyPL
+
+```cpp
+void main(){
+    print("Hi!")
+    // just prints it, return type of void
+    int x = print("?")
+    // legal, but x is assigned to null (like python with None)
+    
+    int x = to_int("1")
+    // takes a string and converts it to an int
+    // we aren't checking to see if it a valid integer as a string, we are just checking if it is a string_type
+
+    double y = to_double("3.14")
+
+    string z = to_string("42")
+    // takes an int or double
+
+    char v = get(0, "ab")
+    // v = a
+    // not checking if the index is a valid index, that is done at runtime
+    // only checks if it is a propper string 
+
+    int r = length("ab")
+    // takes in a string OR ARRAY and returns the length as an int
+    // r = 2
+
+    string s1 = concat("...", "...")
+    // takes two strings and returns a string
+    // s1 = "......"
+
+    string s2 = input()
+    // doesn't take any arguments, returns a string
+}
+```

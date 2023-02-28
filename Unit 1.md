@@ -76,11 +76,17 @@
 * [Monday 5](#monday-5)
   * [Tips For HW-5](#tips-for-hw-5)
     * [Built in functions in MyPL](#built-in-functions-in-mypl)
+* [Lecture 12](#lecture-12)
+  * [Semantic Analysis (Cont.)](#semantic-analysis-cont)
+    * [Inferred Types Stored in curr\_type](#inferred-types-stored-in-curr_type)
+    * [Expr](#expr)
+  * [Tricky parts of HW5](#tricky-parts-of-hw5)
+  * [User-Defined Types (Structs) in MyPL](#user-defined-types-structs-in-mypl)
 
 ## Important Note
 
 Assume all images are drawn by Dominic O.  
-I might draw a few, but the majority will be drawn by him.
+I might draw a few (probably not), the majority will be drawn by him.
 
 ## Lecture 1
 
@@ -2042,7 +2048,7 @@ void main(){
     Node n1 = new Node
     Node n2 = new Node
     Node n3 = n1.next // don't need to create a new node
-    // by default it will be created with its defaul values,
+    // by default it will be created with its default values,
     // next set to null, val set to 0
     n1.val = 10
     n1.next = n2
@@ -2154,3 +2160,92 @@ void main(){
     // doesn't take any arguments, returns a string
 }
 ```
+
+## Lecture 12
+
+### Semantic Analysis (Cont.)
+
+#### Inferred Types Stored in curr_type
+
+```cpp
+class DataType
+{
+public:
+    bool is_array = false;
+    string type_name;
+};
+
+void SemanticChecker::visit(SimpleRValue& v){
+    if(v.value.type() == TokenType::INT_VAL){
+        curr_type = {false, "int");
+    }
+    else if(v.value.type() == TokenType::DOUBLE_VAL){
+        curr_type = {false, "double");
+    }
+    else if(v.value.type() == TokenType::NULL_VAL){
+        curr_type = {false, "void"};
+    }
+} 
+```
+
+* We just look at the token in the rvalue
+* we ask for its type
+* then we look at the type, and set the `curr_type` to a DataType object
+
+#### Expr
+
+```txt
+first : ExprTerm
+op : Token (opt)
+rest : Expr (opt)
+```
+
+```cpp
+void SemanticChecker::visit(Expr& e){
+    e.first->accept(*this); // whatever is stored in first, typecheck yourself
+    DataType lhs_type = curr_type;
+    // now we check if there is an op. otherwise we are done!
+    if(e.op.has_value()){
+        e.rest->accept(*this);
+        DataType rhs_type = curr_type;
+        // now we have to check to see if based on the op, the two types are compatible
+
+        // typing rules -> whats legal, and what is the inferred type
+
+    }
+}
+```
+
+![Layout of Expr](images/expr.png)
+
+### Tricky parts of HW5
+
+* Variable "shadowing"
+  * exists_in_curr_env...
+* representing & using struct & function defs
+* built_in functions
+* return stmts
+* Type inference ... type rules
+* **path expressions**
+* good error messages
+
+### User-Defined Types (Structs) in MyPL
+
+Four places where `structs` can occur in a MyPL prog.
+
+1. Struct definition `struct T {int a1, ...}`
+   * struct info sotred as StructDef AST objects (struct_defs). Ensure defs are well_typed in `visit(StructDef&)`
+2. Object creation `T t = new T`
+   * `T t = new T`-> `curr_type = {false, "T"`
+   * `symbol_table.add("t", curr_type)`, t has type T
+3. rvalues `x = t.a1`
+   * Two steps to get type information
+   * lvalue: `DataType lhs_type = symbol_table.get(var_name).value()`
+   * `if(!struct_defs.contains(lhs_type.type_name)){error!}`
+   * `const StructDef& struct_def = struct_defs[lhs.type.type_name];`
+   * `if(!get_fields(struct_def, field_name)){error!}`
+   * then you can call get_feild to get it
+   * then lookup what the fields type is, then you can infer what the type is
+   * `DataType field_type = get_field(struct_def, field_name).value().data_type;`
+4. lvalues `t.a1 = 10`
+   * Same as (3)

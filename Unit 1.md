@@ -70,18 +70,23 @@
     * [2nd Approach](#2nd-approach)
   * [Operator Precedence](#operator-precedence)
 * [Lecture 10](#lecture-10)
-  * [Semantic Analysis Terminology](#semantic-analysis-terminology)
+  * [Semantic Analysis 1](#semantic-analysis-1)
   * [The goal of Semantic Analysis](#the-goal-of-semantic-analysis)
     * [HW5](#hw5)
 * [Monday 5](#monday-5)
   * [Tips For HW-5](#tips-for-hw-5)
     * [Built in functions in MyPL](#built-in-functions-in-mypl)
 * [Lecture 12](#lecture-12)
-  * [Semantic Analysis (Cont.)](#semantic-analysis-cont)
+  * [Semantic Analysis 2](#semantic-analysis-2)
     * [Inferred Types Stored in curr\_type](#inferred-types-stored-in-curr_type)
     * [Expr](#expr)
   * [Tricky parts of HW5](#tricky-parts-of-hw5)
   * [User-Defined Types (Structs) in MyPL](#user-defined-types-structs-in-mypl)
+* [Lecture 13](#lecture-13)
+  * [Semantic Analysis 3](#semantic-analysis-3)
+    * [Functions (and built-in Functions) in MyPL](#functions-and-built-in-functions-in-mypl)
+    * [Handling Return Statements](#handling-return-statements)
+    * [Type Inference Rules](#type-inference-rules)
 
 ## Important Note
 
@@ -1748,7 +1753,7 @@ t` -> DIVIDE INT t` | empty
 
 ## Lecture 10
 
-### Semantic Analysis Terminology
+### Semantic Analysis 1
 
 "Denotable Objects"
 
@@ -2163,7 +2168,7 @@ void main(){
 
 ## Lecture 12
 
-### Semantic Analysis (Cont.)
+### Semantic Analysis 2
 
 #### Inferred Types Stored in curr_type
 
@@ -2244,8 +2249,131 @@ Four places where `structs` can occur in a MyPL prog.
    * `if(!struct_defs.contains(lhs_type.type_name)){error!}`
    * `const StructDef& struct_def = struct_defs[lhs.type.type_name];`
    * `if(!get_fields(struct_def, field_name)){error!}`
-   * then you can call get_feild to get it
+   * then you can call get_field to get it
    * then lookup what the fields type is, then you can infer what the type is
    * `DataType field_type = get_field(struct_def, field_name).value().data_type;`
 4. lvalues `t.a1 = 10`
    * Same as (3)
+
+## Lecture 13
+
+### Semantic Analysis 3
+
+Plans for finishing Sem. analysis...
+
+* shadowing
+* structs & functions
+* build-in functions
+* handle return stmts
+* type inference
+* path expressions
+* comments
+
+#### Functions (and built-in Functions) in MyPL
+
+2 places where functions appear in MyPL
+
+1. Function defs - `int f(int x) {...}`
+   * Function defs are stored in `fun_defs` (mapping from function name to FunDef)
+2. Function calls - `f(42)`
+
+```cpp
+// function calls 
+void SemanticChecker::visit(CallExpr& e){
+    string fun_name = f.fun_name.lexeme();
+    // check built-ins
+    if(fun_name == "print"){
+        // check the args.
+        // in this case, print needs to have 1 arg
+        // and the type of the arg can be a number of different types
+            // string, char, int, double, etc...
+        curr_type = ...
+    }
+    else if(fun_name == "input"){
+        // check args
+        // for input there are no args
+        curr_type = string;
+    } else if .... // checks the rest of the built ins
+
+    // must be a userdefined :)
+    else{
+        if(!fun_defs.contains(fun_name)){
+            error; // the function wasn't defined yet
+        }
+        const FunDef& f = fun_defs[fun_name];
+        // make sure the def and the call have the same number of params
+        if(e.args.size() != f.params.size()){
+            error; // more or less params :/
+        }
+        // go through each arg, type check it, get the type that its supposed to be, compare them
+        for (int i = 0; i < e.args.size(); i ++){
+            DataType param_type = f.params[i].data_type;
+            e.args[i].accept(*this); // after this, curr_type is the type of the arg
+            // check they are compatable
+        }
+        // set curr_type to f's return type
+        curr_type = f.return_type;
+    }
+}
+```
+
+#### Handling Return Statements
+
+```cpp
+int f(int x){
+    if (x>0){
+        return x-1
+    }
+    else{
+        return false
+    }
+}
+// this is a bad function.
+// there is a return type that doesnt match the functions specified return type
+// when calling a function you can add a symbol to the symbol-table called return
+// return will have the type of the return_type
+
+void visit(FunDef& f){
+    ...
+    DataType return_type = f.return_type;
+    symbol_table.push_environment();
+    symbol_table.add("return", return_type);
+    ... // a few things, one of which is adding parameters to the environment
+    for(auto s : f.stmts()){
+        s->accept(*this);
+        // return symbol will be visible in this accept
+    }
+}
+
+void visit(ReturnStmt& s){
+    ...
+    DataType return_type = symbol_table.get("return").value();
+    ...
+}
+```
+
+#### Type Inference Rules
+
+* Capture "valid" inferences
+* Not all semantic issues are captured (use_before_def)
+
+Basics:
+
+* "e : t"
+  * The Expression e has the Type t
+  * 42 : int
+* $\Gamma$
+  * denotes the current typing context (environment)
+* $\vdash$
+  * denotes "implies"
+* $\Gamma\vdash$ e : t
+  * given the current environment, it is implied that expression e has the type t
+
+An Example typing rule (**not** from MyPL)
+
+$\frac{\Gamma\vdash e_{1} : t \space\space\space \Gamma\vdash e_{2} : t }{\Gamma\vdash e_{1} + e_{2} : t }$
+If we have an expression e1 that is type t and e2 that is type 2, it can be inferred that e1 + e2 has type t
+
+$\Gamma,stmt \vdash e : t$
+$\Gamma$, int x = 5 $\vdash$  x : int
+$\Gamma$, int f(int x) $\vdash$  x : int

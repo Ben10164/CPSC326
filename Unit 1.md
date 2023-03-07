@@ -1,4 +1,4 @@
-# Notes for Unit 1 (or whenever I think we change topics) <!-- omit in toc -->
+# Notes for Unit 1 <!-- omit in toc -->
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -87,11 +87,11 @@
     * [Functions (and built-in Functions) in MyPL](#functions-and-built-in-functions-in-mypl)
     * [Handling Return Statements](#handling-return-statements)
     * [Type Inference Rules](#type-inference-rules)
+* [Monday 6](#monday-6)
 
 ## Important Note
 
-Assume all images are drawn by Dominic O.  
-I might draw a few (probably not), the majority will be drawn by him.
+All images are drawn by Dominic O.  
 
 ## Lecture 1
 
@@ -2377,3 +2377,52 @@ If we have an expression e1 that is type t and e2 that is type 2, it can be infe
 $\Gamma,stmt \vdash e : t$
 $\Gamma$, int x = 5 $\vdash$  x : int
 $\Gamma$, int f(int x) $\vdash$  x : int
+
+## Monday 6
+
+Exam 1:
+
+* Worth 100 pts
+* Closed Notes
+* 5 multi-part qyestions
+* Extra credit question (6 pts)
+* Up to Quiz 6
+  * Semantic Analysis
+  * Symbol table
+    * Bridges and sub environments
+  * Different types of errors
+
+Topics:
+
+* Compilation and Interpretation basics
+  * Frontend steps
+  * Back end stres
+  * Interpretation approaches
+    * VM
+    * JTT
+  * Transpiler
+    * One high-level lang to another
+* Logical Analysis
+  * Tokens and use in parsing
+* Grammer rules
+  * Derivations
+    * Left and Right  
+  * Parse tree
+  * Define grammar
+* Parsing
+  * LL(K)
+  * How to fix LL(k) issuses
+  * Recursive descent parsing
+  * Building ASTs...
+* AASs
+  * What they are for
+  * How to navigate (visitor)
+* Semantic Analysis
+  * Terminology
+  * Block
+  * Environments
+  * Types of
+  * Scope
+  * Bindings
+  * Symbol Table
+  * Semantic Errors

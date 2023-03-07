@@ -2384,7 +2384,7 @@ Exam 1:
 
 * Worth 100 pts
 * Closed Notes
-* 5 multi-part qyestions
+* 5 multi-part questions
 * Extra credit question (6 pts)
 * Up to Quiz 6
   * Semantic Analysis
@@ -2396,7 +2396,7 @@ Topics:
 
 * Compilation and Interpretation basics
   * Frontend steps
-  * Back end stres
+  * Back end steps
   * Interpretation approaches
     * VM
     * JTT

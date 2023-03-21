@@ -121,3 +121,87 @@ Note: `OP(v)` says `v` supplied directly to instruction: `PUSH(v)` means `v` is 
     * jumps to instruction i
   * `JMPF(i)`
     * `pop x, if x is false, jumps to i`
+
+## Monday 7
+
+### Exam Review
+
+#### Q1
+
+a.  
+Source Code -> Lexical Analysis ---Token-Stream---> Syntactic Analysis ---AST---> Semantic Analysis ---AST---> (Backend)
+
+b.  
+
+* Compiler: High Level -> Low Level
+* Transpiler: High Level -> High Level
+* Interpreter: High Level -> IR Executed by VM
+
+c.  
+
+Is this LL(k)?
+
+```txt
+<e> ::= <b> IF <b> ELSE <b> | <b>
+<b> ::= <b> <= <b> | <b> AND <b> | ID
+```
+
+* No (Left side recursion)
+
+Rewrite it as LL(1)
+
+```txt
+<e> ::= <b> <e_tail>
+<e_tail> ::= IF <b> ELSE <b> | empty
+<b> ::= ID <b_tail>
+<b_tail> ::= <= <b> | AND <b> | empty
+```
+
+#### Q2
+
+a. Using the previous grammar, derive `x if x <=y else y` (left most)
+
+```xml
+<e> -> <b> IF <b> ELSE <b>
+    -> ID IF <b> ELSE <b>
+    -> ID IF <b> <= <b> ELSE <b>
+    -> ID IF ID <= <b> ELSE <b>
+    -> ID IF ID <= ID ELSE <b>
+    -> ID IF ID <= ID ELSE ID
+```
+
+b. Using the previous grammar, derive `x if x <=y else y` (right most)
+
+```xml
+<e> -> <b> IF <b> ELSE <b>
+    -> <b> IF <b> ELSE ID
+    -> <b> IF <b> <= <b> ELSE ID
+    -> <b> IF <b> <= ID ELSE ID
+    -> <b> IF ID <= ID ELSE ID
+    -> ID IF ID <= ID ELSE ID
+```
+
+c. Draw the parse tree
+
+![Parse_Tree](images/IMG_1807.jpg)
+[Image taken from my Exam]
+
+d. Write an LL(1) grammar to represent well-formed floating point values that cannot have a leading zero and that are not required to have a digit before or after the decimal point
+
+```xml
+(<d>+ is <d><d>* (one or more))
+
+<f> ::= <p><d>*.<d>*|.<d>+|0.<d>*
+<p> ::= 1|2|3|...|9
+<d> ::= 0 | <p>
+```
+
+e. Another grammar that includes path expressions, functions, and array accessing.
+
+```xml
+<p> ::= ID <r> <p`> 
+<p`> ::= .<p> | empty
+<r> ::= LBRACKET <expr> RBRACKET | LPAREN <a> RPAREN | empty
+<a> ::= <expr> (COMMA <expr>* | empty
+```
+

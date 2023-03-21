@@ -11,6 +11,19 @@
   * [Exam Review](#exam-review)
     * [Q1](#q1)
     * [Q2](#q2)
+* [Lecture 15](#lecture-15)
+  * [MyPL VM Instructions](#mypl-vm-instructions)
+    * [a) Constants \& Variables](#a-constants--variables)
+    * [b) Arithmetic Ops](#b-arithmetic-ops)
+    * [c) Logical Ops](#c-logical-ops)
+    * [d) Relational Ops](#d-relational-ops)
+    * [e) Jumps (Branching)](#e-jumps-branching)
+    * [f) Special Instructions](#f-special-instructions)
+    * [g) Functions](#g-functions)
+    * [h) Heap Instructions (Arrays, Structs)](#h-heap-instructions-arrays-structs)
+    * [i) Built-in Functions](#i-built-in-functions)
+  * [MYPL VM Instructions Example](#mypl-vm-instructions-example)
+  * [Basic MyPL VM Architecture (vm.h/vm.cpp)](#basic-mypl-vm-architecture-vmhvmcpp)
 
 ## Lecture 14
 
@@ -209,3 +222,191 @@ e. Another grammar that includes path expressions, functions, and array accessin
 <a> ::= <expr> (COMMA <expr>* | empty
 ```
 
+## Lecture 15
+
+### MyPL VM Instructions
+
+* Operand Stack
+  * push and pop values
+  * Operand - argument to an instruction
+  * most instructions will take their arguments off the operand stack, then place their results onto the operand stack
+
+* [a) Constants \& Variables](#a-constants--variables)
+* [b) Arithmetic Ops](#b-arithmetic-ops)
+* [c) Logical Ops](#c-logical-ops)
+* [d) Relational Ops](#d-relational-ops)
+* [e) Jumps (Branching)](#e-jumps-branching)
+* [f) Special Instructions](#f-special-instructions)
+* [g) Functions](#g-functions)
+* [h) Heap Instructions (Arrays, Structs)](#h-heap-instructions-arrays-structs)
+* [i) Built-in Functions](#i-built-in-functions)
+
+#### a) Constants & Variables
+
+```cpp
+PUSH(v)
+POP()
+STORE(i) 
+    POP, but moved to be stored at address i
+LOAD(i)
+    PUSHES the value stored at address i
+```
+
+#### b) Arithmetic Ops
+
+```cpp
+ADD ...
+    POP(x), POP(y), PUSH(y+x)
+SUB ...
+    POP(x), POP(y), PUSH(y-x)
+MUL ...
+    POP(x), POP(y), PUSH(y*x)
+DIV ...
+    POP(x), POP(y), PUSH(y/x)
+```
+
+#### c) Logical Ops
+
+```cpp
+AND ...
+    POP(x), POP(y), PUSH(y && x)
+OR ...
+    POP(x), POP(y), PUSH(y || x)
+NOT ...
+    POP(x), PUSH(!x)
+```
+
+#### d) Relational Ops
+
+```cpp
+CMPLT ...
+    POP(x), POP(y), PUSH(y<x)
+CMPLE ...
+    POP(x), POP(y), PUSH(y<=x)
+
+CMPGT ...
+    POP(x), POP(y), PUSH(y>x)
+
+CMPGE ...
+    POP(x), POP(y), PUSH(y>=x)
+
+GMPEQ ...
+    POP(x), POP(y), PUSH(y==x)
+
+CMPNE ...
+    POP(x), POP(y), PUSH(y!=x)
+```
+
+#### e) Jumps (Branching)
+
+```cpp
+JMP(i)
+    Jumps to some index
+    Instructions are numbered starting at 0
+JMPF(i) ...
+    POP(x), IF(x==false){JMP(i)}
+```
+
+#### f) Special Instructions
+
+```cpp
+DUP() ...
+    POP(x), PUSH(x), PUSH(x)
+NOP() ...
+    Whenever we have a loop, at the very end we put a NOP()
+    This allows us to know where to jump to
+```
+
+#### g) Functions
+
+```cpp
+CALL(f) ...
+    calls a function f
+RET() ...
+    exits function, passes back value at the top of the stack
+```
+
+#### h) Heap Instructions (Arrays, Structs)
+
+```cpp
+ALLOCS() ...
+    Allocates a struct object on the heap, PUSH OID x
+        OIDs in MyPL are ints, they start at 2023
+        First OID is 2023, next is 2024, next is 2025, ...
+ALLOCA() ...
+    Allocates an array object on the heap, PUSH OID x
+ADDF(f) ...
+    POP(OID(x)), add field f to obj(x)
+    adds a field to a struct object
+    f is the field
+SETF(f) ...
+    POP(OID(x)), POP(y), obj(x).f = y
+GETF(f) ...
+    POP(OID(x)), PUSH(obj(x).f)
+SETI()
+    POP(x), POP(y), POP(z), Set obj(z)[y] = x
+    Sets the index 
+    a[0] = "abc"
+    First you push the OID (a) 
+    Then you push the index expression (0)
+    Then you push the RHS ("abc")
+    Then you call SETI()
+GETI() ...
+    POP(x), POP(y), PUSH(obj(y)[x])
+```
+
+#### i) Built-in Functions
+
+```cpp
+WRITE() ...
+    POP(x), outputs x
+READ() ...
+    PUSH(x)
+    x is from std::in
+SLEN() ...
+    POP(str(x)), PUSH(len(x))
+ALEN() ...
+    POP(OID(x)), PUSH(len(obj(x))
+GETC() ...
+    POP(str(x)), POP(int(y)), PUSH(x[y])
+TOINT() ...
+    POP(x), PUSH(to_int(x))
+TODBL() ...
+    POP(x), PUSH(to_double(x))
+TOSTR() ...
+    POP(x), PUSH(to_string(x))
+CONCAT() ...
+    POP(x), POP(y), PUSH(y+x) string s
+```
+
+### MYPL VM Instructions Example
+
+Generate VM Instructions for:
+
+```cpp
+// i : index 0
+// j : index 1
+while(i<j){
+    j=j+1
+}
+```
+
+```cpp
+0 LOAD(0) // loads i
+1 LOAD(1) // loads j
+2 CMPLT() // compares the top two items on the stack (pushes result)
+3 JMPF(9) // Jump to the end (outside the loop) if the val on top the stack is false
+4 LOAD(1) // loads j
+5 PUSH(1) // pushes 1
+6 ADD() // adds the top two items on the stack (pushes result)
+7 STORE(1) // stores top of stack (j+1)
+8 JMP(0)
+9 NOP()
+```
+
+### Basic MyPL VM Architecture (vm.h/vm.cpp)
+
+![VM-Components](images/VM-Components.png)
+
+![VM-Stack-Frame](images/VM-Stack-Frame.png)
+(Blue = Frame Info)

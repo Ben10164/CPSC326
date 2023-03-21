@@ -7,6 +7,10 @@
   * [PL "Virtual Machines"](#pl-virtual-machines)
   * [A "bytecode" VM](#a-bytecode-vm)
   * [MyPL VM](#mypl-vm)
+* [Monday 7](#monday-7)
+  * [Exam Review](#exam-review)
+    * [Q1](#q1)
+    * [Q2](#q2)
 
 ## Lecture 14
 
@@ -183,7 +187,7 @@ b. Using the previous grammar, derive `x if x <=y else y` (right most)
 
 c. Draw the parse tree
 
-![Parse_Tree](images/IMG_1807.jpg)
+![Parse_Tree](images/SolExam.jpg)
 [Image taken from my Exam]
 
 d. Write an LL(1) grammar to represent well-formed floating point values that cannot have a leading zero and that are not required to have a digit before or after the decimal point

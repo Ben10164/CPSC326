@@ -24,6 +24,9 @@
     * [i) Built-in Functions](#i-built-in-functions)
   * [MYPL VM Instructions Example](#mypl-vm-instructions-example)
   * [Basic MyPL VM Architecture (vm.h/vm.cpp)](#basic-mypl-vm-architecture-vmhvmcpp)
+* [Lecture 16](#lecture-16)
+  * [Implementing Call Instructions](#implementing-call-instructions)
+  * [Implementing RET Instructions](#implementing-ret-instructions)
 
 ## Lecture 14
 
@@ -410,3 +413,58 @@ while(i<j){
 
 ![VM-Stack-Frame](images/VM-Stack-Frame.png)
 (Blue = Frame Info)
+
+## Lecture 16
+
+### Implementing Call Instructions
+
+Example: f(...) =calls=> g1(...) =calls=> g2(...)
+
+1. Get name for g
+
+    ```cpp
+    string g = get<string>(instr.operand().value()); // all call instructions have an operand
+    ```
+
+2. Instantiate a new frame & set its frame info
+
+    ```cpp
+    shared_ptr<VMFrame> new_frame = make_shared<VMFrame>();
+    new_frame->info = frame_info[g];
+    ```
+
+3. Then push it onto the call_stack
+
+    ```cpp
+    call_stack.push(new_frame); // this is now g2
+    ```
+
+4. Copy arg-count # of args into g2
+
+    ```cpp
+    VMValue x = frame->operand_stack.top();
+    new_frame->operand_stack.push(x);
+    frame->operand_stack.pop();
+    ```
+
+### Implementing RET Instructions
+
+1. Grab return value
+
+    ```cpp
+    VMValue v = frame->operand_stack.top();
+    ```
+
+2. Pop frame
+
+    ```cpp
+    call_stack.pop();
+    frame = call_stack.top();
+    ```
+
+3. If frame exists (it wont exist if you are returning from main)
+
+    ```cpp
+    // push return value to the top of the stack
+    frame->operand_stack.push(v);
+    ```

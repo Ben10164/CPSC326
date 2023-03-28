@@ -32,6 +32,13 @@
   * ["Struct" Heap](#struct-heap)
   * ["Array" heap](#array-heap)
   * [VM Instruction examples](#vm-instruction-examples)
+* [Lecture 17](#lecture-17)
+  * [MyPL Code Generation](#mypl-code-generation)
+  * [Program Nodes](#program-nodes)
+  * [StructDef Nodes](#structdef-nodes)
+  * [Functions](#functions)
+  * [Code Generation](#code-generation)
+  * [Simple Rvalues (Literals)](#simple-rvalues-literals)
 
 ## Lecture 14
 
@@ -733,3 +740,207 @@ frame->operand_stack.push(next_obj_id);
     17: WRITE()
     18: NOP()
     ```
+
+## Lecture 17
+
+### MyPL Code Generation
+
+The Plan:
+
+* Last step is to convert AST to VM instructions
+  * `Semantic, AST` -> `Code Generator, IR (Intermediate Representation)` -> `VM`
+* Will use the visitor pattern
+* Basic setup, then examples
+
+```cpp
+class CodeGenerator: public visitor
+{
+public:
+    CodeGenerator(VM& vm);
+    void visit(Program& p);
+    ...
+
+private:
+    VM& vm; // reference because we want vm to be updated at the end of and throughout  code generation
+    VMFrameInfo curr_frame; // the information associated with the current frame
+    VarTable var_table; // maps the variables to the variable indexes in the current frame
+    unordered_map<string, StructDef> struct_defs;
+
+};
+```
+
+```cpp
+class VarTable
+{
+public:
+    void push_environment();
+    void pop_environment();
+    bool empty();
+
+    void add(const string& var_name);
+    int get(const string& var_name);
+    //... to_string
+
+private:
+    vector<unordered_map<string, int>> environment;
+    int next_index = 0;
+};
+```
+
+```cpp
+void main() { // push_environment
+    int i = 0 
+    // PUSH(0) [for the right hand size]
+    // var_table.add("i");
+    // LOAD(get("i")) [load the value of 0 into i
+    ...
+    i=1
+    // PUSH(1)
+    // STORE(get("i"))
+    ...
+    while(i<...){ // push_environment (pushing a new var_table)
+        int x = 10
+    } // pop_environment
+} // pop_environment
+```
+
+```cpp
+VMInstr instr = VMInstr::STORE(var_table.get(var_name));
+instr.set_comment("variable: " + var_name);
+curr_frame.instructions.push_back(instr);
+
+// then in terminal
+...
+
+mypl --ir ...
+>    ...
+>    store(2) // variable x
+```
+
+### Program Nodes
+
+```cpp
+void visit(Program& p){
+    for(auto& struct_def : p.struct_defs){
+        struct_def.accept(*this);
+    }
+    for(auto& fun_def : p.fun_defs){
+        fun_def.accept(*this);
+    }
+}
+```
+
+### StructDef Nodes
+
+```cpp
+// add object for later
+void visit(StructDef& s){
+    struct_defs[s.struct_name.lexeme()] = s;
+}
+```
+
+### Functions
+
+* In visit(FunDef& f)
+  * Create a new frame info object (as `curr_frame`)
+  * Push a new environment for `var_table`
+  * Store each argument passed
+    * Add an entry to the var_table for each parameter
+    * Create one `STORE(...)` per parameter, use a loop
+  * Visit each body statement
+  * push `null`, add `RET` if last instruction generated wasn't return
+  * Pop `var_table` environment
+  * Add the frame info to the vm
+
+```cpp
+int f(int x){
+    if(x == 0){
+        return x + 1
+    elseif(x>0){
+        return x-1
+    }
+    // there is no explicit return
+    // we always assume f returns SOME value
+    // in this case we need to generate a return statement
+}
+```
+
+### Code Generation
+
+```cpp
+void f(){
+}
+
+// Code Generated
+Frame 'f':
+    0: PUSH(NULL)
+    1: RET()
+```
+
+```cpp
+void f(int x){
+}
+
+// Code Generated
+Frame 'f':
+    0: STORE(0)
+    1: PUSH(NULL)
+    2: RET()
+```
+
+```cpp
+void f(int x, bool y){
+}
+
+// Code Generated 
+Frame 'f':
+    0: STORE (0) // store parameter x
+    1: STORE(1) // store parameter y
+    2: PUSH(NULL)
+    3: RET()
+
+f(3,true)
+
+| true |
+|  3   |
+|______|
+
+f's op stack
+|  3   |
+| true |
+|______|
+```
+
+```cpp
+int f(int x){
+    return x + 1
+}
+
+// Code Generated
+Frame 'f':
+    0: STORE(0) // store x
+    1: LOAD(0) // loads x
+    2: PUSH(1) // pushes 1
+    3: ADD() // pushes x + 1
+    4: RET()
+```
+
+### Simple Rvalues (Literals)
+
+* Generate a `PUSH` with the cooresponding `VMValue`
+  * Create a `VMValue` out of the `.lexeme()` of the token
+    * Nees to convert the string of the lexeme to an int or double
+
+```cpp
+// simple r value is v
+if(v.value.type() == TokenType::INT_VAL){
+    int val = stoi(v.value.lexeme());
+    curr_frame.instructions.push_back(VMInstr::PUSH(val));
+}elseif(double){
+}elseif(null){
+    push nullptr
+}elseif(bool){
+}elseif(char){
+    deal with \n, \t, etc..., there is a helper function for this that he provides
+    push the lexeme
+}

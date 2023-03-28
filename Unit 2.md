@@ -27,6 +27,11 @@
 * [Lecture 16](#lecture-16)
   * [Implementing Call Instructions](#implementing-call-instructions)
   * [Implementing RET Instructions](#implementing-ret-instructions)
+* [Monday 8](#monday-8)
+  * [Heap Alloc](#heap-alloc)
+  * ["Struct" Heap](#struct-heap)
+  * ["Array" heap](#array-heap)
+  * [VM Instruction examples](#vm-instruction-examples)
 
 ## Lecture 14
 
@@ -467,4 +472,264 @@ Example: f(...) =calls=> g1(...) =calls=> g2(...)
     ```cpp
     // push return value to the top of the stack
     frame->operand_stack.push(v);
+    ```
+
+## Monday 8
+
+### Heap Alloc
+
+* Heap Details
+  * Seperated into struct & array (object) heaps
+  * Each object (struct or array) assigned a unique object id
+    * First object id is 2023 in MyPL
+
+```cpp
+Node n1 = new Node
+// generates some space in the heap,
+// then there is an object ID that is created
+
+// n1 -> 2023
+Node n2 = new Node
+// n2 -> 2024
+
+// is n1 the same object as n2
+// their ids are compared
+if(n1 == n2){
+    // doesnt happen
+}
+
+n1 = n2
+// n2 -> 2023
+if(n1 == n2){
+    // happens
+}
+```
+
+### "Struct" Heap
+
+* Each struct object is represented as a map (field- value pairs)
+  * `unordered_map<string, VMValue>`
+
+    ```cpp
+    struct Node {
+        int val
+        Node next
+    }
+
+    {"val": 10, "next": nullptr}
+    {"val": 0, "next": 2023}
+    ```
+
+* Heap is a OID to obj map
+  * `unordered_map<int, unordered_map<string, VMValue>> struct_heap`
+* add, set, get fields
+
+```cpp
+ALLOCS()
+
+struct_heap[next_obj_id] = {};
+frame->operand_stack.push(next_obj_id); // put the object IDs on the top of the operand stack
+++next_obj_id;
+```
+
+### "Array" heap
+
+* Each array object is represented as a vector
+  * You push onto the stack the size of the array
+  * Then you allocate size
+  * Then you initialize the elements
+* Assigned a fixed number of slots on allocation
+* Given default value of each slot
+* Can get & set values by index
+* `unordered_map<int,vector<VMValue>> array_heap`
+
+```cpp
+array int xs = new int[10]
+// allocates a new vector of size 10, fills the values with nulls
+```
+
+```cpp
+ALLOCA()
+// ...pop def.value, pop size
+
+VMValue val = frame->operand_stack.top();
+frame->operand_stack.pop();
+int size = get<int>(frame->operand_stack.top());
+frame->operand_stack.pop();
+
+array_heap[next_obj_id] = vector<VMValue>(size, val); // allocate. each element has a value of val
+frame->operand_stack.push(next_obj_id);
+++next_obj_id;
+```
+
+### VM Instruction examples
+
+1. Show how the operand stack changes after each instruction
+
+    ```cpp
+    Frame 'main'
+    0: PUSH(42)
+    |    |
+    |    |
+    | 42 |
+    |____|
+    1: PUSH(37)
+    |    |
+    | 37 |
+    | 42 |
+    |____|
+    2: ADD()
+    |    |
+    |    |
+    | 79 |   (42 + 37)
+    |____|
+    3: STORE(0)
+    |    |
+    |    |
+    |    |
+    |____|   0->79
+    4: LOAD(0)
+    |    |
+    |    |
+    | 79 |
+    |____|   0->79
+    5: WRITE()
+    |    |
+    |    |
+    |    |
+    |____|
+    ```
+
+1. Translate to MyPL ... assume var 0 is called "x"
+
+    ```cpp
+    void main(){
+        int x = 42 + 37
+        print(x)
+    }
+    ```
+
+1. Same as 1:
+
+    ```cpp
+    Frame 'main'
+    0: PUSH(0)
+    |    |
+    |    |
+    |  0 |
+    |____|
+    1: STORE(0)
+    |    |
+    |    |
+    |    |
+    |____|   0->0
+    2: LOAD(0)
+    |    |
+    |    |
+    |  0 |
+    |____|
+    3: PUSH(2)
+    |    |
+    |  2 |
+    |  0 |
+    |____|
+    4: CMPLT()
+    |    |
+    |    |
+    |true|
+    |____|
+    5: JMPF(11)
+    |    |
+    |    |
+    |    |   Doesnt jump
+    |____|   0->0 
+    6: LOAD(0)
+    |    |
+    |    |
+    |  0 |
+    |____|   0->0
+    7: PUSH(1)
+    |    |
+    |  1 |
+    |  0 |
+    |____|   0->0
+    8: ADD()
+    |    |
+    |    |
+    |  1 |
+    |____|   0->0
+    9: STORE(0)
+    |    |
+    |    |
+    |    |
+    |____|   0->1
+    10: JMP(2)
+    |    |
+    |    |
+    |  1 |
+    |____|   0->1
+    ...
+    this continues until 0->2
+    11: NOP()
+    12: LOAD(0)
+    |    |
+    |    |
+    |  2 |
+    |____|   0->2
+    13: WRITE()
+    |    |
+    |    |
+    |    |
+    |____|   
+    Ouputs(2)
+    ```
+
+1. Translate to MyPL, w/ 0->'i'
+
+    ```cpp
+    void main(){
+        int i = 0
+        while(i<2){
+            i = i + 1
+        }
+        print(i)
+    }
+    ```
+
+1. Translate to VM instructions
+
+    ```cpp
+    void main(){
+        string s = input()
+        if(s=="blue"){
+            print("correct")
+        elseif(s=="green"){
+            print("correct")
+        else{
+            print("wrong")
+        }
+    }
+    ```
+
+    ```cpp
+    Frame 'main'
+    0: READ()
+    1: STORE(0)
+    2: LOAD(0)
+    3: PUSH("blue")
+    4: CMPEQ()
+    5: JMPF(9) //jumps to the elseif
+    6: PUSH("correct")
+    7: WRITE()
+    8: JMP(18) // ending
+    9: LOAD(0)
+    10: PUSH("green")
+    11: CMPEQ()
+    12: JMPF(16) // jumps to the else
+    13: PUSH("correct")
+    14: write()
+    15: JMP(18) // ending
+    16: PUSH("wrong")
+    17: WRITE()
+    18: NOP()
     ```

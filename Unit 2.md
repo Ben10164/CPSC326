@@ -33,12 +33,19 @@
   * ["Array" heap](#array-heap)
   * [VM Instruction examples](#vm-instruction-examples)
 * [Lecture 17](#lecture-17)
-  * [MyPL Code Generation](#mypl-code-generation)
+  * [MyPL Code Generation Examples](#mypl-code-generation-examples)
   * [Program Nodes](#program-nodes)
   * [StructDef Nodes](#structdef-nodes)
   * [Functions](#functions)
   * [Code Generation](#code-generation)
   * [Simple Rvalues (Literals)](#simple-rvalues-literals)
+* [Lecture 18](#lecture-18)
+  * [MyPL Code Generation](#mypl-code-generation)
+  * [While Loops](#while-loops)
+  * [For Loops](#for-loops)
+  * [Object Creation - Structs](#object-creation---structs)
+  * [Object Creation - Arrays](#object-creation---arrays)
+  * [General rvalue path \& lvalues](#general-rvalue-path--lvalues)
 
 ## Lecture 14
 
@@ -743,7 +750,7 @@ frame->operand_stack.push(next_obj_id);
 
 ## Lecture 17
 
-### MyPL Code Generation
+### MyPL Code Generation Examples
 
 The Plan:
 
@@ -848,7 +855,7 @@ void visit(StructDef& s){
     * Add an entry to the var_table for each parameter
     * Create one `STORE(...)` per parameter, use a loop
   * Visit each body statement
-  * push `null`, add `RET` if last instruction generated wasn't return
+  * push `nullptr`, add `RET` if last instruction generated wasn't return
   * Pop `var_table` environment
   * Add the frame info to the vm
 
@@ -873,7 +880,7 @@ void f(){
 
 // Code Generated
 Frame 'f':
-    0: PUSH(NULL)
+    0: PUSH(nullptr)
     1: RET()
 ```
 
@@ -884,7 +891,7 @@ void f(int x){
 // Code Generated
 Frame 'f':
     0: STORE(0)
-    1: PUSH(NULL)
+    1: PUSH(nullptr)
     2: RET()
 ```
 
@@ -896,7 +903,7 @@ void f(int x, bool y){
 Frame 'f':
     0: STORE (0) // store parameter x
     1: STORE(1) // store parameter y
-    2: PUSH(NULL)
+    2: PUSH(nullptr)
     3: RET()
 
 f(3,true)
@@ -944,3 +951,179 @@ if(v.value.type() == TokenType::INT_VAL){
     deal with \n, \t, etc..., there is a helper function for this that he provides
     push the lexeme
 }
+```
+
+## Lecture 18
+
+### MyPL Code Generation
+
+```cpp
+if (x>=y){
+    print(2*y)
+}else{
+    print(x)
+}
+
+x->0
+y->1
+
+// Code Generated
+0: LOAD(0)
+1: LOAD(1)
+2: CMPGE()
+3: JMPF(9)
+4: PUSH(2)
+5: LOAD(1)
+6: MUL()
+7: WRITE()
+8: JMP(11)
+9: LOAD(0)
+10: WRITE()
+11: NOP()
+```
+
+### While Loops
+
+1. Grab starting idex of first instruction (to jump back to)
+1. Call while condition visitor
+1. Create and add JMPF instruction w/ dummy index (fill in later)
+1. Push environment in var table
+1. Visit statements
+1. Pop environment
+1. Add JMP to starting index
+1. Add NOP instr (for JMPF)
+1. Update JMPF operand to NOP index
+
+```cpp
+void f(int x){
+    int i = 0
+    while(i<10){
+        i = i + x
+    }
+}
+
+// Generated Code
+Frame "f"
+    0: Store(0) // Index (0) retrieved from the var table
+    1: PUSH(0)
+    2: STORE(1) // Add i to the var table, STORE(index)
+    3: LOAD(1) // load i
+    4: PUSH(10) // push 10
+    5: CMPLT()
+    6: JMPF(12) // dont enter the body
+    7: LOAD(1) // i
+    8: LOAD(0) // x
+    9: ADD() // i + x
+    10: STORE(1) // i = i + x
+    11: JMP(3)
+    12: NOP()
+    13: PUSH(nullptr) // no return, so we do it
+    14: RET()
+
+
+    3-12, while visitor
+    13,14, fundef visitor
+    3-5, Expr visitor
+    7-10, Stmt visitor
+```
+
+### For Loops
+
+1. Push environment for first variable declaration
+2. Rest similar to while
+3. Pop environment
+4. Visit assign stmt before JMP
+
+```cpp
+void main(){
+    int x = 0
+    for(int i = 0; i < 5; i = i + 1){
+        x = x + i;
+    }
+}
+
+is the same as 
+
+{
+    int i = 0
+    while(i < 5){
+        {
+            x = x + i
+        }
+        i = i + 1
+    }
+}
+```
+
+### Object Creation - Structs
+
+1. Create and add an ALLOCS()
+2. Initialize the corresponding fields
+   1. Get the field info. from StructDef
+   2. Use ADDF, SETF to add & set value for each field
+
+```cpp
+struct T{int x. bool y}
+void main(){
+    T t = new T
+}
+
+// Generated Code
+Frame "main"
+    0: ALLOCS() // 2023 is pushed onto the stack. 
+                // Struct heap has a mapping {2023->{}}
+    1: DUP() // stack: 2023, 2023
+    2: ADDF(x) // pop 2023, add x to object 2023 (inital type null)
+    3: DUP()
+    4: PUSH(nullptr) // stack: nullptr, 2023, 2023
+    5: SETF(x) // pop val (nullptr), pop oid (2023), object(2023).x = val
+    6: DUP()
+    7: ADDF(y)
+    8: DUP()
+    9: PUSH(nullptr)
+    10: SETF(y)
+    11: STORE(0) // 0 is the index of t, giving it the value of 2023
+    12: PUSH(nullptr)
+    13: RET()
+
+
+ADDF(f): pop oid, add f to obj(oid)
+SETF(f): pop val, pop oid, set obj(oid)=val
+```
+
+### Object Creation - Arrays
+
+1. Create and add an ALLOCA()
+1. Requires size of array & initial values
+
+```cpp
+void main(){
+    array int xs = new int[10]
+    xs[0] = 42
+}
+
+// Code Generated
+Frame "main"
+    0: PUSH(10) // Size
+    1: PUSH(nullptr)
+    2: ALLOCA()
+    3: STORE(0) // xs has the value of the OID
+    4: LOAD(0) // put the OID on the stack
+    5: PUSH(0) // put the index on the stack
+    6: PUSH(42) // put the value on the stack
+    7: SETI()
+    8: PUSH(nullptr)
+    9: RET()
+
+0-3, generated by newrvalue for the array
+
+ALLOCA(): pop val, pop size, create vector w/ size vals, add to map w/ new oid, pushes oid
+SETI(): pop x, y, and z, set array obj(z)[y] = x; top[val, index, oid]bottom
+```
+
+### General rvalue path & lvalues
+
+1. Load the variable (e.g. the p in p.x.y.z)
+2. Repeatedly call GETF() [get field] [also assuming its not an array] instruction for remaining path (fields) (e.g. x,y,z)
+3. For array access, generate the index code & use GETI()
+4. For assignment statement (lvalue), the last instruction is either SETF() or SETI()

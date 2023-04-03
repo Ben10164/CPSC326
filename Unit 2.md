@@ -46,6 +46,7 @@
   * [Object Creation - Structs](#object-creation---structs)
   * [Object Creation - Arrays](#object-creation---arrays)
   * [General rvalue path \& lvalues](#general-rvalue-path--lvalues)
+* [Monday 9](#monday-9)
 
 ## Lecture 14
 
@@ -1127,3 +1128,115 @@ SETI(): pop x, y, and z, set array obj(z)[y] = x; top[val, index, oid]bottom
 2. Repeatedly call GETF() [get field] [also assuming its not an array] instruction for remaining path (fields) (e.g. x,y,z)
 3. For array access, generate the index code & use GETI()
 4. For assignment statement (lvalue), the last instruction is either SETF() or SETI()
+
+## Monday 9
+
+1. Convert the following MyPL code to corresponding VM instructions
+
+    ```cpp
+    if(true){
+        print("Blue")
+    }
+    else aif(false){
+        print("Green")
+    }
+    else if(not false){
+        print("Red")
+    }
+    else{
+        print("Yellow")
+    }
+    ```
+
+    ```cpp
+    PUSH(true) // 0
+    JMPF(5) // 1
+    PUSH("Blue") // 2
+    WRITE() // 3
+    JMP(18) // 4
+    PUSH(false) // 5
+    JMPF(10) // 6
+    PUSH("Green") // 7
+    WRITE() // 8
+    JMP(18) // 9 
+    PUSH(false) // 10
+    NOT() // 11
+    JMPF(16) // 12
+    PUSH("Red") // 13
+    WRITE() // 14
+    JMP(18) // 15
+    PUSH("Yellow") // 16
+    WRITE() // 17
+    NOP() // 18
+    ```
+
+    Implementation Hints(`visit(IfStmt&)`)
+    * Vector of JMP indexes:
+      * prev example: (4, 9, 15)
+    * Store prev. JMPF index to update with next condition check
+
+1. Show the operand stack after each instruction. Show the final struct heap and variables. 
+
+    ```cpp
+    0: ALLOCS()
+    1: DUP()
+    2: ADDF(x)
+    3: DUP()
+    4: PUSH(nullptr)
+    5: SETF(x)
+    6: STORE(0)
+    7: LOAD(0)
+    8: PUSH(42)
+    9: SETF(x)
+    10: LOAD(0)
+    11: GETF(x)
+    12: WRITE()
+    ```
+
+    ![Monday 9](images/Monday9.png)
+
+1. Create the MyPL code for the following VM instructionsw
+
+    ```cpp
+    0: ALLOCS()
+    1: DUP()
+    2: ADDF(x)
+    3: DUP()
+    4: PUSH(nullptr)
+    5: SETF(x)
+    6: STORE(0) // s
+    7: LOAD(0)
+    8: PUSH(42)
+    9: SETF(x)
+    10: LOAD(0)
+    11: GETF(x)
+    12: WRITE()
+
+    struct T {int x}
+    ...
+    T t = new T
+    t.x = 42
+    print(t.x)
+    ```
+
+1. Concert to MyPL code
+
+    ```cpp
+    0: LOAD(0)
+    1: GETF(children)
+    2: PUSH(0)
+    3: GETI()
+    4: PUSH(42)
+    5: SETF(val)
+    6: LOAD(0)
+    7: GETF(children)
+    8: PUSH(0)
+    9: GETI()
+    10: GETF(val)
+    11: WRITE()
+
+    struct Node {int val, array Node children}
+    ...
+    n.children[0].val = 42
+    print(n.children[0].val)
+    ```

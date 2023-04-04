@@ -49,7 +49,12 @@
 * [Monday 9](#monday-9)
 * [Lecture 19](#lecture-19)
   * [Basic Paradigms](#basic-paradigms)
-  * [Imperative Model of Computation](#imperative-model-of-computation)
+    * [Imperative vs Declarative](#imperative-vs-declarative)
+  * [Other Paradigms](#other-paradigms)
+  * [From Turing Machines to Imperative Programming](#from-turing-machines-to-imperative-programming)
+    * [Examples of Turing Machine](#examples-of-turing-machine)
+  * [Turing Complete](#turing-complete)
+    * [Accidentally Turing Complete "languages"](#accidentally-turing-complete-languages)
 
 ## Lecture 14
 
@@ -624,7 +629,7 @@ frame->operand_stack.push(next_obj_id);
     |____|
     ```
 
-1. Translate to MyPL ... assume var 0 is called "x"
+2. Translate to MyPL ... assume var 0 is called "x"
 
     ```cpp
     void main(){
@@ -633,7 +638,7 @@ frame->operand_stack.push(next_obj_id);
     }
     ```
 
-1. Same as 1:
+3. Same as 1:
 
     ```cpp
     Frame 'main'
@@ -708,7 +713,7 @@ frame->operand_stack.push(next_obj_id);
     Ouputs(2)
     ```
 
-1. Translate to MyPL, w/ 0->'i'
+4. Translate to MyPL, w/ 0->'i'
 
     ```cpp
     void main(){
@@ -720,7 +725,7 @@ frame->operand_stack.push(next_obj_id);
     }
     ```
 
-1. Translate to VM instructions
+5. Translate to VM instructions
 
     ```cpp
     void main(){
@@ -1184,7 +1189,7 @@ SETI(): pop x, y, and z, set array obj(z)[y] = x; top[val, index, oid]bottom
       * prev example: (4, 9, 15)
     * Store prev. JMPF index to update with next condition check
 
-1. Show the operand stack after each instruction. Show the final struct heap and variables. 
+2. Show the operand stack after each instruction. Show the final struct heap and variables.
 
     ```cpp
     0: ALLOCS()
@@ -1204,7 +1209,7 @@ SETI(): pop x, y, and z, set array obj(z)[y] = x; top[val, index, oid]bottom
 
     ![Monday 9](images/Monday9.png)
 
-1. Create the MyPL code for the following VM instructionsw
+3. Create the MyPL code for the following VM instructionsw
 
     ```cpp
     0: ALLOCS()
@@ -1228,7 +1233,7 @@ SETI(): pop x, y, and z, set array obj(z)[y] = x; top[val, index, oid]bottom
     print(t.x)
     ```
 
-1. Concert to MyPL code
+4. Concert to MyPL code
 
     ```cpp
     0: LOAD(0)
@@ -1279,4 +1284,109 @@ Programming Language Paradigms:
   * Based on First-Order logic
   * PROLOG is first popular Logic Language
 
-### Imperative Model of Computation
+#### Imperative vs Declarative
+
+Imperative | Declarative
+-|-
+Tell machine what to do and **how** to do it|Specify **what** the result should look like
+Specify the steps|Figures out the steps
+Telling someone the recipe|Giving them an order
+
+### Other Paradigms
+
+* Object Oriented
+* Static vs Dynamic types
+* Compiler vs Interpreter
+* Script-based
+
+### From Turing Machines to Imperative Programming
+
+Turing Machines:
+
+1. Infinite tape
+   * The tape is broken into cells
+   * Each cell can store something (think of RAM)
+2. Read/Write head
+   * Positioned at a cell in the tape
+   * This head can:
+     * You can read a symbol out of the cell
+     * You can write a symbol into the cell
+     * Move the head to the right
+     * Move the head to the left
+3. State register
+   * Keeps track of the current state
+4. Transition table (Function)
+   * Current state and Current symbol -> New state and New symbol and new head position (L/R)
+
+Specify the start state  
+Specify the halt state
+
+#### Examples of Turing Machine
+
+1. Assume: $S_1$ is the start state, $S_3$ is the halt state, read/write head is to the left of the input
+
+    curr state|curr symbol|new symbol|new state|direction
+    |-|-|-|-|-|
+    $S_1$|blank|blank|$S_2$|R
+    $S_2$|a|b|$S_2$|R
+    $S_2$|b|b|$S_2$|R
+    $S_2$|blank|blank|$S_3$|L
+
+    This machine takes in a string and replaces all a's with b's
+
+2. Write a TM to flip a's and b's
+
+    curr state|curr symbol|new symbol|new state|direction
+    |-|-|-|-|-|
+    $S_1$|blank|blank|$S_2$|R
+    $S_2$|a|b|$S_2$|R
+    $S_2$|b|a|$S_2$|R
+    $S_2$|blank|blank|$S_3$|L
+
+3. Write a TM to subtract 1 from a binary number  
+    $S_1$ is the start state, $S_3$ is the halt state, read/write head is to the left of the input
+
+    curr state|curr symbol|new symbol|new state|direction
+    |-|-|-|-|-|
+    $S_1$|blank|blank|$S_2$|R
+    $S_2$|0|0|$S_2$|R
+    $S_2$|1|1|$S_2$|R
+    $S_2$|blank|blank|$S_3$|L
+    $S_3$|0|0|$S_3$|L
+    $S_3$|1|0|$S_4$|R
+    $S_4$|0|1|$S_4$|R
+    $S_4$|blank|blank|$S_5$|L
+
+    S1 is moving to the first char  
+    S2 is moving to the end
+    S3 is moving left until see 1
+    S4 is write 1s  
+    S5 is halt  
+
+    (Go to the right all the way, if a 0, change to 1 then move left. Continue until the value is a 1. change to 0)
+
+### Turing Complete
+
+*Every computable function can be computed by a Turing Machine* - Church Turing Thesis
+
+* "Universal" TM
+  * Its possible to write a TM, that can take a TM as an input and execute the TM (Take an input and run it)
+* A PL is *turing complete* if it can simulate4 any TM
+  * You can write a program that can do the same thing as any TM
+<!--- Break --->
+* PL's that are Turing Complete
+  * C, C++, Java, Python, MyPL
+  * They have
+    * Looping
+    * Memory
+    * If statements
+* PL's that are **NOT** Turing Complete
+  * Basic SQL, ReGeX, HTML, XML, JSON, YAML, markdown
+
+#### Accidentally Turing Complete "languages"
+
+* Excel Spreedsheets
+* PowerPoint Presentations
+* MTG (Magic The Gathering)
+* Pokemon Yellow (GB Game)
+  * Remote Code Execution

@@ -467,6 +467,12 @@ Example: f(...) =calls=> g1(...) =calls=> g2(...)
     frame->operand_stack.pop();
     ```
 
+5. Set current frame in VM to new_frame
+
+    ```cpp
+    frame = new_frame;
+    ```
+
 ### Implementing RET Instructions
 
 1. Grab return value

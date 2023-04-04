@@ -47,6 +47,9 @@
   * [Object Creation - Arrays](#object-creation---arrays)
   * [General rvalue path \& lvalues](#general-rvalue-path--lvalues)
 * [Monday 9](#monday-9)
+* [Lecture 19](#lecture-19)
+  * [Basic Paradigms](#basic-paradigms)
+  * [Imperative Model of Computation](#imperative-model-of-computation)
 
 ## Lecture 14
 
@@ -1246,3 +1249,34 @@ SETI(): pop x, y, and z, set array obj(z)[y] = x; top[val, index, oid]bottom
     n.children[0].val = 42
     print(n.children[0].val)
     ```
+
+## Lecture 19
+
+### Basic Paradigms
+
+Programming Language Paradigms:
+
+* First-Order logic (Late 1800s)
+  * All of mathematics can be encoded into logic
+    * Proof procedures
+    * This can lead to a possible way to automate proofs
+* Turing Machines (Early 1930s)
+  * Allen Turing dug into the idea of First-Order logic and its ability to automate proofs
+  * Von Neumann architecture
+* Imperative Languages (1950s)
+  * Based on Turing Machines
+  * FORTRAN was the first Imperative Language
+  * You tell the machine what to do
+    * C, C++, Java, Python
+    * Think assembly, you are sending instructions to the cpu
+    * Very step by step
+* Lambda Calculus (Early 1930s)
+  * Another subset of First-Order logic
+* Functional Languages (1950s)
+  * Based on Lambda Calculus
+  * LISP was the first Functional Language
+* Logic Programming (1970s)
+  * Based on First-Order logic
+  * PROLOG is first popular Logic Language
+
+### Imperative Model of Computation

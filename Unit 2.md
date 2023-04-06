@@ -55,6 +55,10 @@
     * [Examples of Turing Machine](#examples-of-turing-machine)
   * [Turing Complete](#turing-complete)
     * [Accidentally Turing Complete "languages"](#accidentally-turing-complete-languages)
+* [Lecture 20](#lecture-20)
+  * [Basic idea of $\\lambda$-Calculus](#basic-idea-of-lambda-calculus)
+    * [Rules of $\\lambda$-Calculus](#rules-of-lambda-calculus)
+  * [How is $\\lambda$-Calculus as powerful as Turing Machines?](#how-is-lambda-calculus-as-powerful-as-turing-machines)
 
 ## Lecture 14
 
@@ -951,7 +955,7 @@ Frame 'f':
 
 * Generate a `PUSH` with the cooresponding `VMValue`
   * Create a `VMValue` out of the `.lexeme()` of the token
-    * Nees to convert the string of the lexeme to an int or double
+    * Needs to convert the string of the lexeme to an int or double
 
 ```cpp
 // simple r value is v
@@ -1025,7 +1029,7 @@ Frame "f"
     3: LOAD(1) // load i
     4: PUSH(10) // push 10
     5: CMPLT()
-    6: JMPF(12) // dont enter the body
+    6: JMPF(12) // don't enter the body
     7: LOAD(1) // i
     8: LOAD(0) // x
     9: ADD() // i + x
@@ -1088,7 +1092,7 @@ Frame "main"
     0: ALLOCS() // 2023 is pushed onto the stack. 
                 // Struct heap has a mapping {2023->{}}
     1: DUP() // stack: 2023, 2023
-    2: ADDF(x) // pop 2023, add x to object 2023 (inital type null)
+    2: ADDF(x) // pop 2023, add x to object 2023 (initial type null)
     3: DUP()
     4: PUSH(nullptr) // stack: nullptr, 2023, 2023
     5: SETF(x) // pop val (nullptr), pop oid (2023), object(2023).x = val
@@ -1209,7 +1213,7 @@ SETI(): pop x, y, and z, set array obj(z)[y] = x; top[val, index, oid]bottom
 
     ![Monday 9](images/Monday9.png)
 
-3. Create the MyPL code for the following VM instructionsw
+3. Create the MyPL code for the following VM instructions
 
     ```cpp
     0: ALLOCS()
@@ -1390,3 +1394,85 @@ Specify the halt state
 * MTG (Magic The Gathering)
 * Pokemon Yellow (GB Game)
   * Remote Code Execution
+
+## Lecture 20
+
+### Basic idea of $\lambda$-Calculus
+
+* TMs are (roughly) the underlying model of computation in imperative languages
+* $\lambda$-calculus is (roughly) the underlying model of computation of functional languages
+
+#### Rules of $\lambda$-Calculus
+
+1. A *program* in $\lambda$-c is made out of $\lambda$-Functions; unnamed, single-variable functions
+    * $\lambda x .x + 1$
+      * Function that takes x (the one parameter), and returns x + 1
+    * $\lambda x.x$
+      * Takes in x, returns x (*identity function*
+    * How to do multiple-variable
+      * `int g(int x, int y){return x + y;}`
+      * $\lambda x.(\lambda .x+y) \equiv$ `g`
+        * But it uses prefix notation, so the correct way is
+          * $\lambda x.(\lambda .+xy)$
+    * $\lambda x.(\lambda y.x)$
+      * Function that takes an x and returns a function that takes a y and returns x
+      * `int h(int x, int y){return x;}`
+    * $\lambda xy.x \equiv \lambda x.(\lambda y.x)$
+      * shorthand for the example above
+2. Function application
+    * Left to right application (*"reduces to"*)
+    * `+ 3 4`
+      * `+` function
+      * `3` 1st parameter
+      * `4` 2nd parameter
+      * `(+3)4`
+    * $(\lambda x.x)$ 0
+      1. 0 is input
+      2. 0 is bound to x
+      3. result is 0 (x)
+    * $(\lambda x.(\lambda y.x))$ 3 4
+      1. $(\lambda x.(\lambda y.x))$ 3 4
+      2. $(\lambda y.3)$ 4
+      3. Reduces to 3
+3. Expressions
+    * Can be:
+      * A function
+      * An application (i.e. **f(3)** + 5)
+      * A variable
+      * A constant
+    * Lambda functions have the form: $\lambda x . e$ | $x=$variable, $e=$expression
+    * An application has the form: $e_1 e_2$
+      * Passing the expression/function $e_2$ into $e_1$
+
+### How is $\lambda$-Calculus as powerful as Turing Machines?
+
+1. Conditionals
+    $$
+    \lambda x.(\lambda y.x) \rArr True
+    $$
+    $$
+    \lambda x.(\lambda y.x) \rArr False
+    $$
+    $$
+    \lambda xy.xy(\lambda uv.v) \equiv \lambda xy.xyF \rArr And
+    $$
+    $$
+    \lambda xy.x(\lambda uv.u)y \equiv \lambda xy.xTy \rArr Or
+    $$
+    $$
+    \lambda x.x(\lambda uv.v)(\lambda yz.y) \equiv \lambda xFT \rArr Not
+    $$
+
+    Example: True and True
+
+    T And T $\equiv$ And TT $\equiv (\lambda xy.xyF)TT \equiv \underline{T}TF \equiv (\lambda x. (\lambda y.x)) TF \equiv (\lambda y.T)F \equiv T$
+
+    Example: True and False
+
+    T and F $\equiv$ And TF $\equiv (\lambda xy.xyF) TF \equiv \underline{T}FF \equiv (\lambda x.(\lambda y.x))FF \equiv (\lambda y.F)F \equiv F$
+
+    Check In:
+    1. False and True
+        * 
+    2. False or False
+    3. Not True

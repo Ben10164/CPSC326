@@ -1447,21 +1447,15 @@ Specify the halt state
 ### How is $\lambda$-Calculus as powerful as Turing Machines?
 
 1. Conditionals
-    $$
-    \lambda x.(\lambda y.x) \rArr True
-    $$
-    $$
-    \lambda x.(\lambda y.x) \rArr False
-    $$
-    $$
-    \lambda xy.xy(\lambda uv.v) \equiv \lambda xy.xyF \rArr And
-    $$
-    $$
-    \lambda xy.x(\lambda uv.u)y \equiv \lambda xy.xTy \rArr Or
-    $$
-    $$
-    \lambda x.x(\lambda uv.v)(\lambda yz.y) \equiv \lambda xFT \rArr Not
-    $$
+    $\lambda x.(\lambda y.x) \rArr True$
+
+    $\lambda x.(\lambda y.x) \rArr False$
+
+    $\lambda xy.xy(\lambda uv.v) \equiv \lambda xy.xyF \rArr And$
+
+    $\lambda xy.x(\lambda uv.u)y \equiv \lambda xy.xTy \rArr Or$
+
+    $\lambda x.x(\lambda uv.v)(\lambda yz.y) \equiv \lambda xFT \rArr Not$
 
     Example: True and True
 
@@ -1473,6 +1467,5 @@ Specify the halt state
 
     Check In:
     1. False and True
-        * 
     2. False or False
     3. Not True

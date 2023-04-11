@@ -59,6 +59,13 @@
   * [Basic idea of $\\lambda$-Calculus](#basic-idea-of-lambda-calculus)
     * [Rules of $\\lambda$-Calculus](#rules-of-lambda-calculus)
   * [How is $\\lambda$-Calculus as powerful as Turing Machines?](#how-is-lambda-calculus-as-powerful-as-turing-machines)
+* [Lecture 21](#lecture-21)
+  * [$\\lambda$-Calc Wrap up](#lambda-calc-wrap-up)
+    * [Recursion via "Y Combinators"](#recursion-via-y-combinators)
+    * [High level LC Notes](#high-level-lc-notes)
+  * [Intro to OCaml](#intro-to-ocaml)
+    * [High Level OCaml Features/Notes](#high-level-ocaml-featuresnotes)
+    * [OCaml examples](#ocaml-examples)
 
 ## Lecture 14
 
@@ -1447,14 +1454,10 @@ Specify the halt state
 ### How is $\lambda$-Calculus as powerful as Turing Machines?
 
 1. Conditionals
-    $\lambda x.(\lambda y.x) = True$
-
-    $\lambda x.(\lambda y.x) = False$
-
-    $\lambda xy.xy(\lambda uv.v) \equiv \lambda xy.xyF = And$
-
-    $\lambda xy.x(\lambda uv.u)y \equiv \lambda xy.xTy = Or$
-
+    $\lambda x.(\lambda y.x) = True$  
+    $\lambda x.(\lambda y.x) = False$  
+    $\lambda xy.xy(\lambda uv.v) \equiv \lambda xy.xyF = And$  
+    $\lambda xy.x(\lambda uv.u)y \equiv \lambda xy.xTy = Or$  
     $\lambda x.x(\lambda uv.v)(\lambda yz.y) \equiv \lambda xFT = Not$
 
     Example: True and True
@@ -1469,3 +1472,116 @@ Specify the halt state
     1. False and True
     2. False or False
     3. Not True
+
+## Lecture 21
+
+### $\lambda$-Calc Wrap up
+
+$\lambda$-Calculus expressions:
+
+* In general (not just LC), Expressions always evaluate to a value
+* LC has 4 types of expressions
+    1. Literal (Constants), e.g. 1
+    2. Variable, e.g. x
+    3. Function application, e.g. $e_{1} e_{2}$
+    4. $\lambda$-function, e.g. $\lambda x.(\lambda y.x))$
+
+IF True Then 3 Else 4 => IF T 3 4 => 3
+
+#### Recursion via "Y Combinators"
+
+* $R \equiv \lambda y.(\lambda x.y(xx))(\lambda x.y(xx))$
+* $R$ stands for recursion
+* $y$ is the function we want to apply recursively
+* The basic idea is that you call this by passing in a function (the $y$)
+* This continues forever, so you need to have a conditional in order for it to start
+
+Example:
+
+$R_{g}$  
+$\equiv (\lambda y.(\lambda x.y(xx))(\lambda x.y(xx)))g$  
+$\equiv (\lambda x.g(xx)(\lambda x.g(xx))$  
+$\equiv g((\lambda x.g(xx))(\lambda x.g(xx)))$  [Notice how the same pattern is within it as the previous step]  
+$\equiv g(R_{g})$  
+$\equiv g(g(R_{g}))$  
+$\equiv g(g(g(R_{g})))$  
+$\equiv g(g(g(g(...))))$  
+
+#### High level LC Notes
+
+* "Higher order"
+  * You can pass functions into functions as arguments, as well as return functions from a function.
+* All functions take one argument ("currying")
+  * All the main functional programming languages support currying. Behind the scenes those languages use it.
+* Allows for "partial" function applications
+
+```cpp
+int add(int x, int y){
+    return x + y
+}
+// this is not curried 
+-> add_one x = add 1 // but this is!
+```
+
+* Lazy evaluation
+  * Doesn't have to evaluate the values right away
+  
+```cpp
+add(f(...),g(...))
+// these functions might be expensive to compute, we dont know if we will use them yet
+// in LC and other functional languages they dont require f and g to be executed in order to call add
+// instead it returns f(...) + g(...), and this will be evaluated when we actually need the value
+```
+
+### Intro to OCaml
+
+#### High Level OCaml Features/Notes
+
+1. A (mostly) "pure" functional langauge
+    * Pure (mathematical) functions
+      * Given a particular input, you always get back the same output
+      * f(3) will always be ...
+      * No Side Effects (Does not modify state)
+        * **No Global Variables**
+        * **No Passing by reference**
+        * **No user input**
+      * Memoization: The program will remember outputs of a pure function. This will mean that it will not need to recalculate the function if the input is the same
+        * Huge performance boost
+    * OCaml allows for some (controlled) side effects
+      * Input/Output
+      * Arrays (refs)
+2. Functions are "first-class"
+    * Higher order language
+    * Every function is curried, meaning it has support for partial function application
+3. Static Typing
+    * All types checked prior to runtime
+    * Uses sophisticated type inference
+      * Rarely give a type, everything is figured out by OCaml
+      * Unobtrusive - no type annotations
+4. Strong Typing
+    * Guarantees no type errors at runtime
+5. A *Strict* language, but allows lazy evaluation
+    * A Strict language eagerly evaluates function arguments.
+    * To allow lazy eval, you need to set the mode
+
+```ocaml
+let x = 1 / 0 (*error because dividing by 0*)
+let x = lazy(1/0)
+let y = lazy(lazy.force x * 2) (**still not evaluated because it is lazy**)
+```
+
+#### OCaml examples
+
+```ocaml
+2 + 3 ;;
+- : int = 5
+
+5 / 2 ;;
+- : int = 2
+
+1.0 /. 20 ;; (**floating point version of division**)
+- : float = 0.5
+
+(+) 3 4 (**prefix version of plus**)
+- : int = 7
+```

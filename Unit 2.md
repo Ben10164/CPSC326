@@ -66,6 +66,11 @@
   * [Intro to OCaml](#intro-to-ocaml)
     * [High Level OCaml Features/Notes](#high-level-ocaml-featuresnotes)
     * [OCaml examples](#ocaml-examples)
+* [Lecture 22](#lecture-22)
+  * [Final Project Review](#final-project-review)
+  * [OCaml Basics](#ocaml-basics)
+  * [OCaml in files](#ocaml-in-files)
+  * [OCaml Lists](#ocaml-lists)
 
 ## Lecture 14
 
@@ -1584,4 +1589,113 @@ let y = lazy(lazy.force x * 2) (**still not evaluated because it is lazy**)
 
 (+) 3 4 (**prefix version of plus**)
 - : int = 7
+```
+
+## Lecture 22
+
+### Final Project Review
+
+* Due Thurs Finals Week
+* 2-3 Page Report (see instr.)
+* 3-5 min youtube video (see instr.) ... demo
+* Worth 3 assignments!
+* Grading
+  * Complete: 30/90 (~33%)
+  * Tests: 30/90 (~33%)
+  * Other: Quality & Difficulty
+
+### OCaml Basics
+
+```ocaml
+1 <> 1 ;;
+(*bool = false*)
+if true then 1 else 2.0;;
+(* type error because the if else expression can only have one type*)
+Sys.int_size ;;
+(*63*)
+
+'a' ;;
+(* char = 'a' *)
+"foo";;
+(* string = "foo" *)
+() ;;
+(*unit = () *)
+"foo" ^ "bar" ;;
+(* string = "foobar" *)
+"foo".[0]
+(* char = 'f' *)
+(float 2) +. 3.0
+(* float = 5. *)
+int_of_float 3.14;;
+(* int 3 *)
+```
+
+* There are no variables
+  * instead of variables, you establish a "binding" to a certain value
+  * binding means it cannot change
+
+```ocaml
+let n = e
+---
+let n = e1 in e2
+(* local binding. only visible within the scope of e2*)
+
+let y = 42 in y + 1 ;;
+(* int = 43 *)
+y ;;
+(* error, y is undefined *)
+
+(* global binding *)
+
+let inc x = x+1
+(* val inc : int -> int = <fun> *)
+
+inc 10 ;;
+(* int = 11 *)
+
+(+) ;;
+(* int -> int -> int = <fun> *)
+
+let dec x = x - 1
+(* val dec int -> int = <fun> *)
+
+dec 2 ;;
+(* int = 1 *)
+
+dec inc 1 ;;
+(* int = 1 *)
+
+dec inc 1 ;;
+(* this would fail because it goes right to left, passing inc into dec *)
+(* Error: This function has type int -> int
+       It is applied to too many arguments; maybe you forgot a `;'. *)
+
+dec (inc 1) ;;
+(* int = 1 *)
+```
+
+### OCaml in files
+
+Extension is `.ml`
+
+```ocaml
+(* hello.ml *)
+let msg = "Hello World!" ;;
+print_endline msg ;;
+```
+
+`CPSC326 % ocaml hello.ml`  
+`Hello World!`
+
+`ocamlopt` compiles OCaml
+
+### OCaml Lists
+
+* Lists are strange because instead of using commas, you use semi-colons
+* Lists are homogeneous
+  * When you create a list, the values in the list all have to be the same type
+
+```ocaml
+[10; 20; 30]
+(* int list = [10; 20; 30] *)
 ```

@@ -71,6 +71,13 @@
   * [OCaml Basics](#ocaml-basics)
   * [OCaml in files](#ocaml-in-files)
   * [OCaml Lists](#ocaml-lists)
+* [Monday 10](#monday-10)
+  * [$\\lambda$-Calculus recursion examples](#lambda-calculus-recursion-examples)
+    * [Y-Combinator](#y-combinator)
+    * [First try at factorials (FAC fails)](#first-try-at-factorials-fac-fails)
+    * [Paramitize FAC](#paramitize-fac)
+    * [Apply FAC using a Y-Parameter](#apply-fac-using-a-y-parameter)
+  * [OCaml Basic Functions](#ocaml-basic-functions)
 
 ## Lecture 14
 
@@ -1699,3 +1706,63 @@ print_endline msg ;;
 [10; 20; 30]
 (* int list = [10; 20; 30] *)
 ```
+
+## Monday 10
+
+### $\lambda$-Calculus recursion examples
+
+#### Y-Combinator
+
+$R \equiv \lambda y.(\lambda x.y(xx))(\lambda x.y(xx))$  
+$R_{f} \equiv \lambda y.(\lambda x.y(xx))(\lambda x.y(xx)) f$  
+$\equiv (\lambda x.f(xx))(\lambda x.f(xx))$  
+$\equiv f((\lambda x.f(xx))(\lambda x.f(xx)))$  
+$\equiv f(R_{f})$  
+therefore  
+$R_{f} \equiv f(R_{f})$
+
+#### First try at factorials (FAC fails)
+
+FAC $\equiv \lambda$ n.IF(= 1 n )$1 (* n (FAC (- n 1)))  
+This fails because it is using FAC in its definition... FAIL!
+
+#### Paramitize FAC
+
+* Applying the Y-Combinator over the FAC function
+* We must parameterize FAC
+
+FAC $\equiv \lambda$f.($\lambda$n. IF(= 1 n) 1 (* n (f ( - n 1)))
+
+How does it work?
+
+* If n is 1, it returns on, otherwise it returns the fac of n - 1
+
+#### Apply FAC using a Y-Parameter
+
+(R FAC) 2 $\equiv$ FAC(R FAC)2  
+$\equiv (\lambda f.(\lambda n.$IF (= n 1) 1 ( *n (f(- n 1 )...) (R FAC)2
+$\equiv \lambda n.IF( = n 1) 1 (* n ((R FAC)(-n1)...)2$  
+$\equiv$ if (= 2 1) 1 (*2 ((R FAC) (-2 1)...)  
+$\equiv (* 2(($R FAC$) 1))$  
+$\equiv$ (* 2 ( FAC (R FAC)) 1 ))
+
+This continues until it is: (* 2 1) because FAC( R FAC) 1 is 1.
+
+### OCaml Basic Functions
+
+1. Convert degrees to radians
+   1. W/o naming values
+
+        ```ocaml
+        (*takes in deg as a parameter*)
+        let degrees_to_radians deg = deg *. (3.14159 /. 180.0)
+        ```
+
+   2. W/ naming values using let in
+
+        ```ocaml
+        let degrees_to_radians' deg = 
+            let pi = 3.14159
+            and half_circle = 180.0
+            in deg *. (pi /. half_circle)
+        ```

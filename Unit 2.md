@@ -70,14 +70,21 @@
   * [Final Project Review](#final-project-review)
   * [OCaml Basics](#ocaml-basics)
   * [OCaml in files](#ocaml-in-files)
-  * [OCaml Lists](#ocaml-lists)
+  * [OCaml Lists Intro](#ocaml-lists-intro)
 * [Monday 10](#monday-10)
   * [$\\lambda$-Calculus recursion examples](#lambda-calculus-recursion-examples)
     * [Y-Combinator](#y-combinator)
     * [First try at factorials (FAC fails)](#first-try-at-factorials-fac-fails)
-    * [Paramitize FAC](#paramitize-fac)
+    * [Parametrize FAC](#parametrize-fac)
     * [Apply FAC using a Y-Parameter](#apply-fac-using-a-y-parameter)
   * [OCaml Basic Functions](#ocaml-basic-functions)
+* [Lecture 23](#lecture-23)
+  * [OCaml Lists](#ocaml-lists)
+    * [OCaml List Functions](#ocaml-list-functions)
+  * [OCaml Tuples](#ocaml-tuples)
+    * [OCaml Tuple Functions](#ocaml-tuple-functions)
+  * [OCaml Factorial](#ocaml-factorial)
+  * [Mutual Recursion](#mutual-recursion)
 
 ## Lecture 14
 
@@ -1696,7 +1703,7 @@ print_endline msg ;;
 
 `ocamlopt` compiles OCaml
 
-### OCaml Lists
+### OCaml Lists Intro
 
 * Lists are strange because instead of using commas, you use semi-colons
 * Lists are homogeneous
@@ -1726,7 +1733,7 @@ $R_{f} \equiv f(R_{f})$
 FAC $\equiv \lambda$ n.IF(= 1 n )$1 (* n (FAC (- n 1)))  
 This fails because it is using FAC in its definition... FAIL!
 
-#### Paramitize FAC
+#### Parametrize FAC
 
 * Applying the Y-Combinator over the FAC function
 * We must parameterize FAC
@@ -1766,3 +1773,171 @@ This continues until it is: (* 2 1) because FAC( R FAC) 1 is 1.
             and half_circle = 180.0
             in deg *. (pi /. half_circle)
         ```
+
+## Lecture 23
+
+### OCaml Lists
+
+* lists in OCaml take the form:
+
+    ```ocaml
+    [e1; e2; ... ; en]
+
+    [1; 2; 3; 4] ;;
+    -: int list = [1; 2; 3; 4]
+    
+    [[1; 2]; [3; 4]] ;;
+    -: int list list = [[1; 2]; [3; 4]]
+
+    [[1.; 2.]; [3.; 4.; 5.;]; []] ;;
+    -: float list list = ...
+
+    [[true; false]; true] ;;
+    (* This is an array because the types are different. *)
+    (* Element 1 has the type bool list *)
+    (* Element 2 has the type bool *)
+
+    [] ;;
+    -: 'a list = []
+    (* 'a is a type parameter. Think of it as the alpha symbol *)
+    (* 'a stands for any type *)
+    ```
+
+* Lists can be any length
+* All values in a list must have the **same** type (Homogeneous)
+* Empty list is compatable with lists of any type
+* When making an empty list, it has type a' (any type)
+
+#### OCaml List Functions
+
+* List append (@)
+  * Takes two lists, makes a new list with all the elements of the first list followed by all of the elements in the second list
+  * Does not modify either of the passed in lists
+
+    ```ocaml
+    [1; 3] @ [2; 4] ;;
+    :- int list = [1; 3; 2; 4]
+
+    [1; 3] @ ['a'] ;;
+    (* Error because the two lists are not compatable *)
+
+    (@) ;;
+    :- 'a list -> 'a list -> 'a list = <fun>
+       ^First      ^Second    ^Return
+        Must have the same type
+
+    (@) [1] ;;
+    :- int list -> int list = <fun>
+    (* Partial function application *)
+
+    let prepend_1 = (@) [1] ;;
+    -: int list -> int list = <fun>
+
+    prepend_1 [3; 4]
+    -: int list = [1; 3; 4]
+    ```
+
+* List construction (::) "Cons"
+  * Create a new list from a value and list
+  * Value, followed by a list
+    * Because of this, Cons must be right associative (goes right to left)
+
+    ```ocaml
+    1 :: [2; 3]
+    -: int list = [1; 2; 3]
+
+    1 :: 2 :: 3 :: [] ;;
+    -: int list = [1; 2; 3]
+
+    (::) ;; (* Well this fails, but in theory it is... *)
+    -: 'a -> 'a list -> 'a list = <fun>
+    ```
+
+### OCaml Tuples
+
+* A "tuple" is a fixed collection of values, heterogeneous
+  * Does not have to be homogeneous. Each element of the tuple can be a different type
+
+    ```ocaml
+    (1, 2) ;;
+    -: int * int = (1, 2)
+    (* call touple a "product type" because it uses the * symbol *)
+
+    (1, 'a') ;;
+    -: int * char = (1, 'a')
+
+    (1, 2., 'c') ;;
+    -: int * float * char = (1, 2., 'a')
+    (* "int cross float cross char" *)
+
+    ([1; 2], ['a'; 'b']) ;;
+    -: int list * char list = ([1; 2], ['a'; 'b'])
+
+    [(1, 2); ('a', 'b')] ;;
+    -: Expecting int * int, found char * char
+
+    [(1, 2); (2, 3)] ;;
+    -: int * int list = ...
+
+    [(1, 2); (2, 3, 4)] ;;
+    -: Expecting int * int, found int * int * int
+
+    [(1, 2); ()]
+    -: Error, expected a int * int, but found a unit type
+    ```
+
+#### OCaml Tuple Functions
+
+"Pairs" (2-tuples)
+
+```ocaml
+fst ;; (* returns first element of pair *)
+-: 'a * 'b -> 'a = <fun>
+
+fst (1, 2) ;;
+-: int = 1
+
+snd ;; (* returns second element of pair *)
+-: 'a * 'b -> 'b = <fun>
+```
+
+Function that adds one to the first and second value of tuple. Returns the 
+
+```ocaml
+let pair_add_1 p = ((fst p) + 1, (snd p) + 1) ;; 
+-: int * int -> int * int = <fun>
+(* int because its doing integer addition. pair because it is using fst and snd *)
+
+pair_add_1 (3, 4) ;;
+-: ... = (4, 5)
+
+let pair_add_1' (x, y) = (x+1, y+1) ;; 
+(* not a normal function because it takes in multiple parameters *)
+(* it is okay though because it recognizes it is taking in a two tuple *)
+```
+
+### OCaml Factorial
+
+```ocaml
+let fac n = if n <= 1 then i else n * fac (n-1)
+(* doesnt work because you are using the function in its definition *)
+(* unbound *)
+
+let rec fac n = if n <= 1 then 1 else n * fac(n - 1)
+-: int -> int = <fun>
+(* works because it was told fac *)
+
+fac 10
+-: int = ...
+```
+
+### Mutual Recursion
+
+* One thing thats recursive calls something else that calls that thing
+* You have to define the two funcitons together
+
+```ocaml
+let rec f n = 
+    if n < 0 then g n else n+1
+and g n = 
+    if n >= 0 then f n else n-1

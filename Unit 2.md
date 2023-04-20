@@ -36,8 +36,8 @@
   * [MyPL Code Generation Examples](#mypl-code-generation-examples)
   * [Program Nodes](#program-nodes)
   * [StructDef Nodes](#structdef-nodes)
-  * [Functions](#functions)
-  * [Code Generation](#code-generation)
+  * [Functions in Code Generation](#functions-in-code-generation)
+  * [Code Generation Examples](#code-generation-examples)
   * [Simple Rvalues (Literals)](#simple-rvalues-literals)
 * [Lecture 18](#lecture-18)
   * [MyPL Code Generation](#mypl-code-generation)
@@ -79,12 +79,20 @@
     * [Apply FAC using a Y-Parameter](#apply-fac-using-a-y-parameter)
   * [OCaml Basic Functions](#ocaml-basic-functions)
 * [Lecture 23](#lecture-23)
-  * [OCaml Lists](#ocaml-lists)
+  * [OCaml Functions](#ocaml-functions)
+    * [OCaml Lists](#ocaml-lists)
     * [OCaml List Functions](#ocaml-list-functions)
-  * [OCaml Tuples](#ocaml-tuples)
+    * [OCaml Tuples](#ocaml-tuples)
     * [OCaml Tuple Functions](#ocaml-tuple-functions)
-  * [OCaml Factorial](#ocaml-factorial)
-  * [Mutual Recursion](#mutual-recursion)
+  * [OCaml Examples](#ocaml-examples-1)
+    * [OCaml Factorial](#ocaml-factorial)
+    * [Mutual Recursion](#mutual-recursion)
+* [Lecture 24](#lecture-24)
+  * [OCaml Functions (Cont.)](#ocaml-functions-cont)
+    * [Basic Exceptions for Error Cases](#basic-exceptions-for-error-cases)
+    * [List Functions in OCaml via List](#list-functions-in-ocaml-via-list)
+      * [Important (Map)](#important-map)
+    * [Defining OCaml functions](#defining-ocaml-functions)
 
 ## Lecture 14
 
@@ -891,7 +899,7 @@ void visit(StructDef& s){
 }
 ```
 
-### Functions
+### Functions in Code Generation
 
 * In visit(FunDef& f)
   * Create a new frame info object (as `curr_frame`)
@@ -917,7 +925,7 @@ int f(int x){
 }
 ```
 
-### Code Generation
+### Code Generation Examples
 
 ```cpp
 void f(){
@@ -1547,8 +1555,8 @@ int add(int x, int y){
   
 ```cpp
 add(f(...),g(...))
-// these functions might be expensive to compute, we dont know if we will use them yet
-// in LC and other functional languages they dont require f and g to be executed in order to call add
+// these functions might be expensive to compute, we don't know if we will use them yet
+// in LC and other functional languages they don't require f and g to be executed in order to call add
 // instead it returns f(...) + g(...), and this will be evaluated when we actually need the value
 ```
 
@@ -1776,7 +1784,9 @@ This continues until it is: (* 2 1) because FAC( R FAC) 1 is 1.
 
 ## Lecture 23
 
-### OCaml Lists
+### OCaml Functions
+
+#### OCaml Lists
 
 * lists in OCaml take the form:
 
@@ -1853,7 +1863,7 @@ This continues until it is: (* 2 1) because FAC( R FAC) 1 is 1.
     -: 'a -> 'a list -> 'a list = <fun>
     ```
 
-### OCaml Tuples
+#### OCaml Tuples
 
 * A "tuple" is a fixed collection of values, heterogeneous
   * Does not have to be homogeneous. Each element of the tuple can be a different type
@@ -1861,7 +1871,7 @@ This continues until it is: (* 2 1) because FAC( R FAC) 1 is 1.
     ```ocaml
     (1, 2) ;;
     -: int * int = (1, 2)
-    (* call touple a "product type" because it uses the * symbol *)
+    (* call tuple a "product type" because it uses the * symbol *)
 
     (1, 'a') ;;
     -: int * char = (1, 'a')
@@ -1901,7 +1911,7 @@ snd ;; (* returns second element of pair *)
 -: 'a * 'b -> 'b = <fun>
 ```
 
-Function that adds one to the first and second value of tuple. Returns the 
+Function that adds one to the first and second value of tuple.
 
 ```ocaml
 let pair_add_1 p = ((fst p) + 1, (snd p) + 1) ;; 
@@ -1916,7 +1926,9 @@ let pair_add_1' (x, y) = (x+1, y+1) ;;
 (* it is okay though because it recognizes it is taking in a two tuple *)
 ```
 
-### OCaml Factorial
+### OCaml Examples
+
+#### OCaml Factorial
 
 ```ocaml
 let fac n = if n <= 1 then i else n * fac (n-1)
@@ -1931,13 +1943,206 @@ fac 10
 -: int = ...
 ```
 
-### Mutual Recursion
+#### Mutual Recursion
 
 * One thing thats recursive calls something else that calls that thing
-* You have to define the two funcitons together
+* You have to define the two functions together
 
 ```ocaml
 let rec f n = 
     if n < 0 then g n else n+1
 and g n = 
     if n >= 0 then f n else n-1
+```
+
+## Lecture 24
+
+### OCaml Functions (Cont.)
+
+#### Basic Exceptions for Error Cases
+
+* Throw exceptions using `failWith...`
+
+    ```ocaml
+    let rec fac n =
+        if n = 0 then 1
+        else if n > 0 then n * fac(n-1)
+        else failwith "Negative Value"
+    ;;
+
+    # fac 0
+    -: int = 1
+
+    # fac (-1)
+    Exception: Failure "Negative Value"
+
+    # failwith ;;
+    (* Takes a string *)
+    -: string -> 'a = <fun>
+    ```
+
+#### List Functions in OCaml via List
+
+* "Head" ("Car") gives first element of list
+
+    ```ocaml
+    List.hd [4; 1; 5; 3] ;;
+    -: int = 4
+    
+    List.hd [] ;;
+    Exception: Failure "hd"
+
+    # List.hd ;;
+    -: 'a list -> 'a
+    ```
+
+* "Tail" ("cdr") gives everything but head of list
+
+    ```ocaml
+    # list.tl [4; 1; 5; 3]
+    -: int list = [1; 5; 3]
+
+    # List.tl [] ;;
+    Exception: Failure "tl"
+    -: char list = []
+
+    # List.tl ;;
+    -: 'a list -> 'a list
+    ```
+
+* Length
+
+    ```ocaml
+    # List.length [4; 1; 5; 3] ;;
+    -: int = 4
+
+    # List.length [] ;;
+    -: int = 0
+
+    # List.length ;;
+    -: 'a list -> int
+    ```
+
+* Reverse
+  
+    ```ocaml
+    List.rev [3; 2; 1] ;;
+    -: int list = [1; 2; 3]
+
+    List.rev [] ;;
+    -: 'a list -> []
+
+    List.rev ;;
+    -: 'a list -> 'a list
+    ```
+
+* Member
+
+    ```ocaml
+    List.mem 1 [4; 1; 3; 2] ;;
+    -: bool = true
+
+    List.mem 2 [4; 1; 5; 3] ;;
+    -: bool = false
+
+    List.mem 42 [] ;;
+    -: bool = false
+
+    List.mem ;;
+    -: 'a -> 'a list -> bool
+    ```
+
+* List combine ("zip")
+
+    ```ocaml
+    # List.combine [1; 2] ['a'; 'b']
+    -: (int * char) list = [(1, 'a'), (2, 'b')]
+
+    # List.combine [1] [10; 20] ;;
+    Exception: Failure "combine"
+
+    # List.combine ;;
+    -: 'a list -> 'b list -> ('a * 'b) list
+    ```
+
+Higher order functions: Functions that take functions as params
+
+* List exists: Checks if any element in the list satisfies a given boolean function
+
+    ```ocaml
+    let even x = x mod 2 = 0 ;;
+    -: int -> bool
+
+    List.exists even [1; 3; 5] ;;
+    -: bool = false (* none of the elements are even *)
+
+    # List.exists ;;
+    -: ('a -> bool) -> 'a list -> bool
+
+* List for_all: Checks if all elements satisfy a bool function
+
+    ```ocaml
+    # List.for_all even [2; 4; 8] ;;
+    -: bool = true
+
+    # List.for_all even [2; 4; 8; 1] ;;
+    -: bool = false
+
+    # List.for_all ;;
+    -: ('a -> bool) -> 'a list -> bool
+    ```
+
+##### Important (Map)
+
+* List map: apply a function to every element of a list
+
+    ```ocaml
+    # let inc x = x + 1
+    -: int -> int
+
+    # List.map inc [1; 2; 3] ;;
+    -: int list = [2; 3; 4]
+
+    # List.map even [1; 2; 3; 4] ;;
+    -: bool list = [false; true; false; true]
+
+    # List.map ;;
+    -: ('a -> 'b) -> 'a list -> 'b list = <fun>
+    ```
+
+* Show
+  * If you want to see all the different things to use in a module you can use show
+
+    ```ocaml
+    # show List ;;
+    -: ...
+    ```
+
+#### Defining OCaml functions
+
+* Length; 'a list -> int
+
+    ```ocaml
+    let rec length xs = 
+        if xs = [] then 0
+        else 1 + length(List.tl xs)
+    ;;
+    ```
+
+* Sum the values in a list
+
+    ```ocaml
+    let rec sum xs = 
+        if xs = [] then 0
+        else List.head xs + sum(List.tl xs)
+    ;;
+    sum: int list -> int
+    ```
+
+* Range: like python
+
+    ```ocaml
+    let rec range i j =
+        if i >= j then []
+        else i :: range(i + 1) j
+    ```

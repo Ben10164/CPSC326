@@ -98,6 +98,11 @@
   * [Combinators in OCaml](#combinators-in-ocaml)
     * [Combinator Calculi](#combinator-calculi)
   * [More OCaml Examples](#more-ocaml-examples)
+* [Lecture 25](#lecture-25)
+  * [More OCaml Functions](#more-ocaml-functions)
+    * [Lambda functions](#lambda-functions)
+  * [Implementing Higher Order Functions](#implementing-higher-order-functions)
+  * [Pattern Matching](#pattern-matching)
 
 ## Lecture 14
 
@@ -2253,3 +2258,177 @@ SKI examples:
             in (n, List.hd xs) :: encode_run_len(drop n xs)
     ;;
     ```
+
+## Lecture 25
+
+### More OCaml Functions
+
+```ocaml
+(* Take: Returns list w/ first n elements in given list *)
+let rec take n xs = 
+    if n <= 0 || xs = [] then []
+    else (List.hd xs) :: take (n-1)(List.tl xs)
+;;
+```
+
+#### Lambda functions
+
+```ocaml
+(fun x-> x*2) 4 ;;
+=> 8
+
+(fun x -> (fun y -> y + x)) 3 4;;
+=> 7
+
+List.filter (fun x-> 5 > x) [1; 7; 3; 10] ;;
+=> [1; 3]
+
+List.filter;;
+-: ('a -> bool) -> 'a list -> 'a list
+```
+
+### Implementing Higher Order Functions
+
+Filter
+
+```ocaml
+let rec filter f xs =
+    (* f is a function *)
+    if xs = [] then []
+    else if f(List.hd xs) then (List.hd xs) :: filter f (List.tl xs)
+    else filter f (List.tl xs)
+;;
+
+(* another way *)
+let rec filter f xs =
+    if xs = [] then []
+    else let h = List.hd xs
+        and t = List.tl xs
+        in if f h then h :: filter f t
+            else filter f t
+;;
+```
+
+Map
+
+```ocaml
+let rec map f xs =
+    if xs = [] then []
+    else f(List.hd xs) :: map f (List.tl xs)
+```
+
+Combine
+
+```ocaml
+combine [1; 2] ['a'; 'b']
+=> [(a, 'b'); (2, 'b')]
+```
+
+Combine-with (Zip with)
+
+```ocaml
+let rec combine_with f xs ys =
+    if xs = [] || ys = [] then []
+    else if xs = [] || ys = [] then failwith "..."
+    else let x = List.hd xs
+        and y = List.hd ys
+        in f(x y) :: combine_with f (List.tl xs) (List.tl ys)
+;;
+
+(* This is the dot product of 2 vectors *)
+combine_with (times) [1; 2; 3] [10; 20; 30]
+-: [10; 40; 90]
+
+combine_with ;;
+-: ('a -> 'b -> 'c) -> 'a list -> 'b list -> 'c list
+```
+
+### Pattern Matching
+
+We look at the input, and we look at all the patterns and values the input can be. Think of it as switch statements
+
+```ocaml
+let my_not x =
+    if x = true then false
+    else true
+;;
+(* This sucks *)
+
+
+(* Here x has 2 "patterns": true or false *)
+let my_not x =
+    match x with
+    | true -> false
+    | false -> true
+;;
+```
+
+Basic form of a match expression:
+
+```ocaml
+match e with
+| p1 -> e1
+| p2 -> e2
+| ...
+| pn -> en
+```
+
+```ocaml
+let vowel x =
+    if x = 'a' || x = 'e' || x = 'i' || x = 'o' || x = 'u' then true
+    else false
+;;
+(* YUCK! *)
+
+let vowel x =
+    match x with
+    | 'a' -> true
+    | 'e' -> true
+    | 'i' -> true
+    | 'o' -> true
+    | 'u' -> true
+    | _ -> false
+;;
+
+let vowel x = 
+    match x with
+    | 'a' | 'e' | 'i' | 'o' | 'u' -> true
+    | _ -> false
+;;
+```
+
+If there is a pattern that is not exhausted (doesnt have the `_` case), ocaml will tell us with a warning.
+
+```ocaml
+let nil xs = if xs = [] then true else false;;
+
+let nil xs = 
+    match xs with
+    | [] -> true
+    | _ -> false
+;;
+```
+
+```ocaml
+let rec length xs =
+    if xs = [] then 0
+    else 1 + length (List.tl xs)
+;;
+
+let rec length xs =
+    match xs with
+    | [] -> 0
+    | _::t -> 1 + length t
+    (* This is deconstructing the list, matching on it *)
+```
+
+Other ways to match
+
+```ocaml
+match xs with
+| [] -> 
+| [x] -> (* only for a list with length 1 *)
+| [x; y] -> (* only for a two element list *)
+| [.....]
+| h1::h2::t -> (* matches on a two or more element list *)
+```

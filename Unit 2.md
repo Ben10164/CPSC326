@@ -93,6 +93,11 @@
     * [List Functions in OCaml via List](#list-functions-in-ocaml-via-list)
       * [Important (Map)](#important-map)
     * [Defining OCaml functions](#defining-ocaml-functions)
+* [Monday 11](#monday-11)
+  * [Quiz Overview](#quiz-overview)
+  * [Combinators in OCaml](#combinators-in-ocaml)
+    * [Combinator Calculi](#combinator-calculi)
+  * [More OCaml Examples](#more-ocaml-examples)
 
 ## Lecture 14
 
@@ -2145,4 +2150,106 @@ Higher order functions: Functions that take functions as params
     let rec range i j =
         if i >= j then []
         else i :: range(i + 1) j
+    ```
+
+## Monday 11
+
+### Quiz Overview
+
+1. Give the type
+   1. `[30; 25]`
+      * `int list`
+   2. `('a', true, [21])`
+      * `char * bool * (int list)`
+   3. `[[1.0]; [2.1; 3.2]; []]`
+      * `float list list`
+   4. `[]`
+      * `'a list`
+   5. `[[1; 2]; [3; 4]] @ [[5,6]]`
+      * `int list list`
+   6. `[1] :: [2] :: []`
+      * `int list list`
+2. Pred function (Subtracts one from a given integer value
+
+    ```ocaml
+    let pred x = x - 1;;
+    -: int -> int
+    ```
+
+3. Sub2 function that subtracts 1 from a number
+
+    ```ocaml
+    let sub2 x = pred (pred x);;
+    -: int -> int 
+    ```
+
+### Combinators in OCaml
+
+* Fun.id : `'a -> int`
+  * `let id x = x`
+  * $\lambda x.x$
+* Fun.const : `'a -> 'b -> 'a`
+  * `let const x y = x`
+  * $\lambda x.(\lambda y.x))$
+* Fun.flip : `('a -> 'b -> 'c) -> ('b -> 'a -> 'c)
+  * `let flip f x y = f y x`
+    * flips the params
+  * $\lambda f.(\lambda x.(\lambda y. fyx))$
+
+#### Combinator Calculi
+
+* In every single combinator calculus, there are a certain amount of functions to make the calculus TC
+* SKI Calculus
+  * I: Identity function (id)
+  * K x y is const function (const)
+  * S f g x = f x(gx) ... very close to function application
+    * $S(\lambda x.e_{1})(\lambda x.e_{2})$
+  * You can write any LC program using combinations of S K and I
+  * Think of it as the assembly for Lambda Calc languages 
+
+SKI examples:
+
+* $True = K$
+* $False = S K$
+* $R_{\alpha} = S(K_{\alpha})(SII)(S(K_{\alpha})(SII))$
+
+### More OCaml Examples
+
+* Recursive version of Fib.
+
+    ```ocaml
+    (* This way of calculating it sucks *)
+    let rec fib x = 
+        if n = 0 then 0
+        else if n = 1 then 1
+        else if n > 1 then fib(n-2) + fib(n-1)
+        else failwith "Negative num" 
+    ;;
+    ```
+
+* Flatten : `'a list list -> 'a list`
+  * `flatten [[1; 2]; [3; 4]] -> [1; 2; 3; 4]`
+
+    ```ocaml
+    let rec flatten xs = 
+        if xs = [] then []
+        else List.hd xs @ flatten (List.tl xs)
+    ;;
+  
+* Run_length encoding
+  * `['a'; 'a'; 'a'; 'b'; 'b'; 'b'; 'c'; 'a' 'a'] -> [(3, 'a'); (2, 'b'); (1; 'c'); (2, 'a')]`
+
+    ```ocaml
+    let rec count_run x xs = 
+        if xs = [] || List.hd xs != x then 0
+        else 1 + count_run x (List.tl xs) ;;
+    Let rec drop n xs = 
+        if n<= 0 then xs
+        else if xs = [] then []
+        else drop (n-1)(List.tl xs);;
+    let rec encode_run_len xs = 
+        if xs = [] then []
+        else let n = count_run(List.hd xs) xs
+            in (n, List.hd xs) :: encode_run_len(drop n xs)
+    ;;
     ```

@@ -103,6 +103,12 @@
     * [Lambda functions](#lambda-functions)
   * [Implementing Higher Order Functions](#implementing-higher-order-functions)
   * [Pattern Matching](#pattern-matching)
+* [Lecture 26](#lecture-26)
+  * [Finishing Patterns and Guards](#finishing-patterns-and-guards)
+    * [Matching on Multiple Arguments](#matching-on-multiple-arguments)
+    * [Guarding](#guarding)
+  * [Algebraic and Parameterized user-defined types](#algebraic-and-parameterized-user-defined-types)
+  * [Nominal types](#nominal-types)
 
 ## Lecture 14
 
@@ -2172,7 +2178,7 @@ Higher order functions: Functions that take functions as params
       * `'a list`
    5. `[[1; 2]; [3; 4]] @ [[5,6]]`
       * `int list list`
-   6. `[1] :: [2] :: []`
+   6. `[1]::[2]::[]`
       * `int list list`
 2. Pred function (Subtracts one from a given integer value
 
@@ -2210,7 +2216,7 @@ Higher order functions: Functions that take functions as params
   * S f g x = f x(gx) ... very close to function application
     * $S(\lambda x.e_{1})(\lambda x.e_{2})$
   * You can write any LC program using combinations of S K and I
-  * Think of it as the assembly for Lambda Calc languages 
+  * Think of it as the assembly for Lambda Calc languages
 
 SKI examples:
 
@@ -2255,7 +2261,7 @@ SKI examples:
     let rec encode_run_len xs = 
         if xs = [] then []
         else let n = count_run(List.hd xs) xs
-            in (n, List.hd xs) :: encode_run_len(drop n xs)
+            in (n, List.hd xs)::encode_run_len(drop n xs)
     ;;
     ```
 
@@ -2267,7 +2273,7 @@ SKI examples:
 (* Take: Returns list w/ first n elements in given list *)
 let rec take n xs = 
     if n <= 0 || xs = [] then []
-    else (List.hd xs) :: take (n-1)(List.tl xs)
+    else (List.hd xs)::take (n-1)(List.tl xs)
 ;;
 ```
 
@@ -2295,7 +2301,7 @@ Filter
 let rec filter f xs =
     (* f is a function *)
     if xs = [] then []
-    else if f(List.hd xs) then (List.hd xs) :: filter f (List.tl xs)
+    else if f(List.hd xs) then (List.hd xs)::filter f (List.tl xs)
     else filter f (List.tl xs)
 ;;
 
@@ -2304,7 +2310,7 @@ let rec filter f xs =
     if xs = [] then []
     else let h = List.hd xs
         and t = List.tl xs
-        in if f h then h :: filter f t
+        in if f h then h::filter f t
             else filter f t
 ;;
 ```
@@ -2314,7 +2320,7 @@ Map
 ```ocaml
 let rec map f xs =
     if xs = [] then []
-    else f(List.hd xs) :: map f (List.tl xs)
+    else f(List.hd xs)::map f (List.tl xs)
 ```
 
 Combine
@@ -2332,7 +2338,7 @@ let rec combine_with f xs ys =
     else if xs = [] || ys = [] then failwith "..."
     else let x = List.hd xs
         and y = List.hd ys
-        in f(x y) :: combine_with f (List.tl xs) (List.tl ys)
+        in f(x y)::combine_with f (List.tl xs) (List.tl ys)
 ;;
 
 (* This is the dot product of 2 vectors *)
@@ -2420,6 +2426,7 @@ let rec length xs =
     | [] -> 0
     | _::t -> 1 + length t
     (* This is deconstructing the list, matching on it *)
+;;
 ```
 
 Other ways to match
@@ -2431,4 +2438,183 @@ match xs with
 | [x; y] -> (* only for a two element list *)
 | [.....]
 | h1::h2::t -> (* matches on a two or more element list *)
+```
+
+## Lecture 26
+
+### Finishing Patterns and Guards
+
+#### Matching on Multiple Arguments
+
+```ocaml
+(* Matching on a single argument *)
+let rec length xs =
+    match xs with
+    | [] -> 0
+    | _::t -> 1 + length t
+;;
+
+(* without patterns *)
+let rec mix xs ys =
+    if xs = [] || ys = [] then xs @ ys
+    else (List.hd xs)::(List.hd ys)::mix (List.tl xs) (List.tl ys)
+
+(* Examples
+mix [] [] => []
+mix [1; 3; 5] [] => [1; 3; 5]
+mix [] [2; 4; 6] => [[2; 4; 6]
+mix [1; 3; 5] [2; 4; 6] => [1; 2; 3; 4; 5; 6] *)
+
+let rec mix xs ys =
+    match (xs, ys) with 
+    | ([], ys') -> ys'
+    | (xs', []) -> xs'
+    | (x::xs', y::ys') -> x::y::mix xs' ys'
+```
+
+```ocaml
+let head xs = 
+    match xs with
+    | [] -> failwith "Empty list"
+    | x::_ -> x
+
+let tail xs = 
+    match xs with
+    | [] -> failwith "Empty list"
+    | _::t -> t
+```
+
+```ocaml
+let rec concat xs ys = 
+    match xs with
+    | [] -> ys
+    | x::t -> x::concat t ys
+
+let rec drop n xs = 
+    match xs with
+    | [] -> []
+    | x::t -> if x > 0 then drop (n-1) t
+                else x::t
+
+let rec drop n xs =
+    match xs with
+    | [] -> []
+    | x::t as xs' -> if n > 0 then drop (n-1) t
+                    else xs'
+
+let rec take n xs =
+    match xs with
+    | []    ->  []
+    | x::t  ->  if n > 0 then x::take(n-1) t
+                else []
+
+(* wait these are still using if then else! *)
+```
+
+#### Guarding
+
+* Patterns apply structural conditions for matching (value equality, 1 or more elements, etc.)
+* Guards apply logical conditions for matching
+* Must have a pattern, then you apply a guard
+
+```ocaml
+let rec drop n xs =
+    match xs with
+    | [] -> []
+    | _::t when n > 0 -> drop (n-1) t
+    | xs' -> xs'
+```
+
+```ocaml
+let grade p =
+    match p with
+    | _ when p >= 90 -> 'A'
+    | _ when p >= 80 -> 'B'
+    | _ when p >= 70 -> 'C'
+    | _ when p >= 60 -> 'D'
+    | _ -> 'F'
+```
+
+### Algebraic and Parameterized user-defined types
+
+Algebraic types consist of:
+
+* Datatypes:
+  * Product type (cartisian product: `t1 * t2 * t3 * ... * tn`)
+    * tuple types
+  * Sum type (disjoint union of types: `t1 | t2 | t3 | ... | tn`)
+    * this type, or this type, or this type, or ...
+  * Combination of these
+* Type
+  * `type id = int ;;`
+    * Creates a type synonym, like a `typedef`
+  * `type ints = int list ;;`
+    * Defines a name ints that is a synonym for `int list`
+  * `type authors = (string*string) list ;;`
+    * (First name, last name)
+    * etc.
+
+```ocaml
+let id1 = 111 ;;
+-: int
+
+type id = int ;;
+let id1 : id = 111 ;;
+-: id 
+
+type ints = int list ;;
+let xs : ints = [1; 2; 3] ;;
+-: ints
+```
+
+A type synonym is a **structural** typing as opposed to a **nominal** typing
+
+### Nominal types
+
+```ocaml
+type book = Book of int * string * string list ;;
+type magazine = Magazine of int * string * string list ;;
+```
+
+* `book`: type name
+* `Book of`: Data constructor - (What makes it a Nominal type)
+* `int * string * string list`: Product type (3 *fields*)
+
+Note: Even if the product type between two nominal types are the same, they cant be used with each other (book and magazine cannot be used together)
+
+* Nominal: Type name is important
+* Structural: The type name is ignored, but structure is important
+
+```ocaml
+let b1 = Book (1, "Compilers", ["A1"; "A2"]) ;;
+b1 : book = ~~~~~~
+```
+
+```ocaml
+(* data constructor with zero fields *)
+type color = Red
+
+type color = Red | Blue | Green ;;
+
+let c1 = Red ;;
+-: val c1: color = Red
+let c2 = Blue ;;
+-: val c2; color = Blue
+
+c1 = c2 ;; => false
+c1 < c2 => true
+
+let color_str c =
+    match c with
+    | Red -> "red"
+    | Blue -> "blue"
+    | _ -> "green"
+```
+
+```ocaml
+type periodical = Book of string | Magazine of string ;;
+let title p =
+    match p with 
+    | Book t -> t
+    | Magazine t -> t
 ```

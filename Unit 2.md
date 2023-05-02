@@ -109,6 +109,8 @@
     * [Guarding](#guarding)
   * [Algebraic and Parameterized user-defined types](#algebraic-and-parameterized-user-defined-types)
   * [Nominal types](#nominal-types)
+* [Lecture 27](#lecture-27)
+  * [Algebraic Data Types](#algebraic-data-types)
 
 ## Lecture 14
 
@@ -2617,4 +2619,138 @@ let title p =
     match p with 
     | Book t -> t
     | Magazine t -> t
+```
+
+## Lecture 27
+
+### Algebraic Data Types
+
+```ocaml
+type book = Book of int * string * string list
+(* Book(ID, Name, Authors) *)
+
+type color  =   Red of int * int * int
+            |   Blue of int * int * int
+            |   Green of int * int * int
+```
+
+Box type: You can put a value into the box, otherwise the box is empty  
+The value you put into the box doesnt matter
+
+```ocaml
+type 'a box = Box of 'a | Empty
+
+# let b1 = Box true;;
+-: b1: bool box = Box true
+
+# let b2 = Box 42;;
+-: b2: int box = Box 42
+
+# let b3 = Empty;;
+-: b3: 'a box = Empty
+
+(* int box -> int box -> int box *)
+let div_box b1 b2 =
+    match b1, b2 with
+    | Box x, Box y when y != 0 -> Box (x/y)
+    | _, _ -> Empty
+
+# div_box (Box 4) (Box 2);;
+-: int box = Box 2
+
+# div_box (Box 3) (Box 0);;
+-: int box = Empty
+```
+
+OCaml Linked List
+
+```ocaml
+type 'a linked_list = Node of 'a *  'a linked_list | Null
+
+let l1 = Node ("a", Null)
+let l2 = Node(10, Node (20, Null))
+let l3 = Node(5, l2)
+
+let empty xs = 
+    match xs with
+    | Null -> true
+    | _ -> false
+
+let rec length xs = 
+    match xs with
+    | Null -> 0
+    | Node(_, t) -> 1 + length t
+
+let rec push_back v xs = 
+    match xs with
+    | Null -> Node(v, Null)
+    | Node(x, t) -> Node(x, push_back v t)
+```
+
+Binary Tree
+
+```ocaml
+type 'a tree = Node of 'a * 'a tree * 'a tree 
+            | Null
+;;
+
+let t1 = Node (10, Null, Null)
+(* tree with a single node *)
+-: int tree
+
+let t2 = Node ("b", Node ("a", Null, Null), Null)
+(* tree with the values a and b *)
+(* b being the middle, with a as a left subtree  *)
+
+let empty t = t = Null;;
+
+let rec size = 
+    match t with
+    | Null -> 0
+    | Node(_, l, r) -> 1 + size l + size r
+;;
+
+let rec height t = 
+    match t with
+    | Null -> 0
+    | Node (_, l, r) -> 1 + max (height l) (height r)
+;;
+
+let rec insert v t =
+    match t with
+    | Null -> Node(v, Null, Null)
+    | Node (x, l, r) when v <= x -> Node (x, insert v l, r)
+    | Node (x, l, r) -> Node (x, l, insert v r)
+;;
+
+let rec contains v t =
+    match t with
+    | Null -> false
+    | Node (x, _, _) when x = v -> true
+    | Node (x, l, _) when v < x -> contains v l
+    | Node (_, _, r) -> contains v r
+;;
+
+let rec remove x t =
+    match t with
+    (* navigate *)
+    | Null -> Null
+    | Node (y, l, r) when x < y -> Node (y, delete x l, r)
+    | Node (y, l, r) when x > y -> Node (y, l, delete x r)
+    (* they must be equal *)
+    | Node (y, l, r) -> 
+        let rec delete_root t =
+            match t with
+            | Node (_, l, Null) -> l
+            | Node (_, Null, r) -> r
+            | Node (_, l, r) -> 
+                let s = inorder_successor r in
+                    Node (s, l, delete s r)
+        and rec inorder_successor t =
+            match t with
+            | Node (x, Null, _) -> x
+            | Node (_, l, _) -> inorder_successor l
+            | _ -> failwith "not a case"
+        in delete_root (Node (y, l, r))
+;;
 ```

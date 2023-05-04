@@ -88,6 +88,7 @@
     * [Handling Return Statements](#handling-return-statements)
     * [Type Inference Rules](#type-inference-rules)
 * [Monday 6](#monday-6)
+  * [Exam 1 Info](#exam-1-info)
 
 ## Important Note
 
@@ -2380,7 +2381,9 @@ $\Gamma$, int f(int x) $\vdash$  x : int
 
 ## Monday 6
 
-Exam 1:
+### Exam 1 Info
+
+General:
 
 * Worth 100 pts
 * Closed Notes

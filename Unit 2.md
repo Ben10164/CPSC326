@@ -111,6 +111,10 @@
   * [Nominal types](#nominal-types)
 * [Lecture 27](#lecture-27)
   * [Algebraic Data Types](#algebraic-data-types)
+* [Lecture 28](#lecture-28)
+  * [Practice Quiz](#practice-quiz)
+  * [Exam 2 (Final) Info](#exam-2-final-info)
+  * [Folding](#folding)
 
 ## Lecture 14
 
@@ -2754,3 +2758,135 @@ let rec remove x t =
         in delete_root (Node (y, l, r))
 ;;
 ```
+
+## Lecture 28
+
+### Practice Quiz
+
+```ocaml
+let rec insert i v xs =
+    match xs with 
+    | xs' when i = 0 -> v :: xs'
+    | x :: t when i > 0 -> x :: insert (i-1) v t
+    | _ -> failwith "Invalid index"
+
+let rec map f xs =
+    match xs with
+    | [] -> []
+    | x :: t -> f x :: map f t
+
+type 'a linked_list = Node of 'a * 'a linked_list 
+                    | Null ;;
+
+let rec append l1 l2 =
+    match (l1, l2) with
+    | (Null, l2') -> l2'
+    | (Node (x, t),l2') -> Node(x, append t l2')
+```
+
+### Exam 2 (Final) Info
+
+Overview
+
+* Closed everything
+* 6 Multipart Q's
+* 2 extra credit (8 points)
+* Cummulative
+* 100 points
+
+Topics
+
+* PL terminology & basics (compolation phases, strngly typed, statically ryped, strict, etc.)
+  * Question on $\lambda$-calc
+* Grammars (derivations, LL, defining)
+* Parsing
+  * Write the recursive descent functions for a grammar
+  * Dont have to write the AST
+* Code Generation
+  * Draw the stack
+  * "Here is some code, what instructions will be generated"
+* Basic OCaml functions
+* Algabreic types & functions (OCaml)
+
+Study
+
+* Quizes
+  * Some are drawn from them
+* Exam 1
+* Structured similarly to homework
+  * HW: 2, 3, 6, 7, 8, 9
+
+### Folding
+
+"A Fold is a higher order function in OCaml that acts as a template for a certain programming pattern."
+
+```py
+a = 0 # Accumulator
+for x in xs:
+    a = a + x # any operation (step function)
+return a
+```
+
+```ocaml
+List.fold_left : ('a -> 'b -> 'a) -> 'a -> 'b list -> 'a
+(* (step function) -> 
+   inital accumulator value -> 
+   list -> 
+   final accumulated value *)
+
+List.fold_left (+) 0 [1; 2; 3] ;;
+-: int = 6
+-: 0 + 1 = 1, 1 + 2 = 3, 3 + 3 = 6, 6
+
+let rec left_fold step acc xs = 
+    match xs with
+    | [] -> acc
+    | h :: t -> left_fold step (step acc x) t
+```
+
+```ocaml
+List.fold_right : ('b -> 'a -> 'a) -> 'b list -> 'a -> 'a
+(* different order for some reason *)
+
+(* difference is that the resulting expression is right associative *)
+(((1 + 2) + 3) + 4) vs (1 + (2 + (3 + 4)))
+
+let rec fold_right step xs acc =
+    match xs with
+    | [] -> acc
+    | x :: t -> step x (fold_right step t acc)
+
+fold_right (-) [5; 3; 1] 9
+=> 5 - (fold_right (-) [3; 1] 9)
+=> 5 - (3 - (fold_right (-) [1] 9)
+=> 5 - (3 - (1 - (fold_right (-) [] 9))
+=> 5 - (3 - (1 - (9)))
+=> -6
+```
+
+Redefining other functions with folds
+
+```ocaml
+List.filter : ('a -> bool) -> 'a list -> 'a list
+
+let rec filter p xs = 
+    match xs with
+    | [] -> []
+    | x :: t when p x -> x :: filter p t
+    | _ :: t -> filter p t
+
+let filter' p xs =
+    (* define step function *)
+    let step x acc =
+        match x with
+        | x' when p x' -> x' :: acc
+        | _ -> acc
+    in fold_right step xs []
+
+let filter'' p xs =
+    fold_right (fun x acc -> if p x then x :: acc else acc) xs []
+
+map : ('a -> 'b) -> 'a list -> 'b list
+
+let map' f xs =
+    fold_right (fun x acc -> f x :: acc) xs []

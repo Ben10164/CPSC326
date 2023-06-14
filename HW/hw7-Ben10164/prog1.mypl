@@ -1,0 +1,60 @@
+# This program will calculate mersenne primes
+# What is a mersenne prime?
+#   This is when the number (2^n)-1, with n being prime, is a prime number.
+#   i.e. M11 is 2^11 - 1 -> 2048 - 1 -> 2047 (prime)
+
+# without the user of modulo, detecting primes is a more complicated affair.
+bool is_prime(int num){
+    int max = (num / 2) # we only have to check numbers until this point
+    int inc = 2
+    while(inc <= max){
+        if(((num/inc) * inc) == num){
+            return false
+        }
+        inc = inc + 1
+    }
+    return true
+}
+
+bool is_mersenne_prime_base(int p){
+    # assuming p is prime already
+    int sum = 2
+    for(int i = 0; i < p-1; i = i + 1){
+        sum = sum * 2
+    }
+    sum = sum - 1
+    if(sum == 0-1){
+        print("You have reached the maximum size for integers in MyPL.\n")
+        print("Yeah, mersenne primes get massive quick. \n")
+        return false
+    }
+    return is_prime(sum)
+}
+
+int get_mersenne_prime(int b){
+    int sum = 2
+    for(int i = 0; i < b-1; i = i + 1){
+        sum = sum * 2
+    }
+    sum = sum - 1
+    return sum
+}
+
+void get_mersenne_primes(int n){
+    # returns mersenne primes with the base until n
+    for(int i = 2; i < n; i = i + 1){
+        if(is_prime(i)){
+            if(is_mersenne_prime_base(i)){
+                print("M(")
+                print(i)
+                print(") = ")
+                print(get_mersenne_prime(i))
+                print("\n")
+            }
+        }
+    }
+}
+
+void main(){
+    get_mersenne_primes(20)
+}

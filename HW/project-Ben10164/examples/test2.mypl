@@ -1,0 +1,18 @@
+int sum(int v1, int v2 = 10, int v3 = 20){
+    return v1 + v2
+}
+
+void main() {
+  int val = sum(10)
+  print(val) # should be 20
+  print('\n')
+  val = sum(v1 = 20)
+  print(val) # should be 30
+  print('\n')
+  val = sum(v1 = 20, v2=20)
+  print(val) # should be 40
+  print('\n')
+  val = sum(v2 = 20, v1=20)
+  print(val) # should be 40
+  print('\n')
+}

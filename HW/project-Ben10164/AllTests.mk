@@ -1,0 +1,11 @@
+all:
+	./vm_tests
+	./token_tests
+	./simple_parser_tests
+	./semantic_checker_tests
+	./parser_syntax_tests
+	./lexer_tests
+	./keyword_argument_tests
+	./default_value_tests
+	./code_generator_tests
+	./ast_parser_tests

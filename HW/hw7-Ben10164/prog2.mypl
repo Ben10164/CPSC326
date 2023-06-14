@@ -1,0 +1,46 @@
+# Implements bubble sort
+
+void bubble_sort(array int a, int n)
+{
+    for (int i = n - 1; i > 0; i = i - 1)
+    {
+        bool inOrder = true
+        for (int j = 0; j < i; j = j + 1)
+        {
+            if (a[j] > a[j + 1])
+            {
+                inOrder = false
+                int temp = a[j]
+                a[j] = a[j+1]
+                a[j+1] = temp
+            }
+        }
+        if (inOrder)
+        {
+            return null
+        }
+    }
+}
+
+void main(){
+    array int a1 = new int[10]
+    for (int i = 10; i > 0; i = i - 1) {
+        a1[10 - i] = i
+    }
+
+    print("Before:\n")
+    for (int i = 0; i < 10; i = i + 1){
+        print(a1[i])
+        print(" ")
+    }
+
+    print("\nAfter:\n")
+
+    bubble_sort(a1, 10)
+
+    for (int i = 0; i < 10; i = i + 1){
+        print(a1[i])
+        print(" ")
+    }
+    print("\n")
+}

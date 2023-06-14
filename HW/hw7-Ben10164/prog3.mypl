@@ -1,0 +1,59 @@
+# this is a recreation of my first ever computer science assignment at gonzaga
+
+void main()
+{
+    # Initializing all of the variables
+    string userName = ""
+    string userFrom = ""
+    string favCar = ""
+
+    int years = 0
+
+    double userAge = 0.0
+    double ageDiv = 0.0
+    double carCost = 0.0
+    double yearlyRate = 0.0
+    double monthlyRate = 0.0
+    double monthlyCost = 0.0
+    double totalCost = 0.0
+
+    # This is the age of the ai
+    double aiAge = 4.0
+
+    # Question_1
+
+    print("What is your name?\n")
+    # Input
+    userName = input()
+    # Response
+    print("Hi there, it is nice to meet you ")
+    print(userName)
+    print("\n")
+
+    # Question_2
+
+    print("Where are you from ?\n")
+    # Input
+    userFrom = input()
+    # Response
+    print("Thats cool! I've always wanted to go to ")
+    print(userFrom)
+    print("\n")
+
+    # Question_3
+
+
+    print("So this might be a bit weird having me ask you this, but I might as well ask.\nHow old are you?\nI'm 4 if it makes you feel better\n")
+    # Input
+    userAge = to_double(input())
+    # Divides the user age by the ai age
+    ageDiv = userAge / aiAge
+    # Response
+    print("That's awesome! That actually make you ")
+    print(ageDiv)
+    print(" times older than me!\n")
+
+    print("Well I have to go! Thanks for talking with me ")
+    print(userName)
+    print("! It was really fun!\n")
+}
